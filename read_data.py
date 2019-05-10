@@ -31,7 +31,7 @@ def read_data_genome(dir_name,a,dict_ind_genome):
         #print(data_gene[0:10])
         for y in ["gene_version","gene_name","gene_source","gene_biotype","gene_id"]:
             data_gene[y]=data_gene[y].apply(clear_data)
-        print(data_gene[0:10])
+        #print(data_gene[0:10])
         a.append(data_gene)
         n=x.split(".")[0]
         dict_ind_genome[n]=len(a)-1
