@@ -1,0 +1,2 @@
+ftp://ftp.ensembl.org/pub/release-96/gtf/lepisosteus_oculatus/Lepisosteus_oculatus.LepOcu1.96.gtf.gz
+ftp://ftp.ensembl.org/pub/release-96/gtf/mola_mola/Mola_mola.ASM169857v1.96.gtf.gz
