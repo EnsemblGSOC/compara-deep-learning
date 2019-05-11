@@ -36,3 +36,15 @@ def read_data_genome(dir_name,a,dict_ind_genome):
         n=x.split(".")[0]
         dict_ind_genome[n]=len(a)-1
     return a,dict_ind_genome
+
+def read_data_homology(dir,a_h,d_h):
+    lf=os.listdir(dir)
+    if len(lf)==0:
+        print("No Files in the Directory!!!!!!!")
+        sys.exit(1)
+    for x in lf:
+        data=pd.read_csv(dir+"/"+x,compression='gzip',sep='\t')
+        a_h.append(data)
+        n=x.split(".")[0]
+        d_h[n]=len(a_h)-1
+    return a_h,d_h
