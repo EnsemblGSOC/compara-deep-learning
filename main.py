@@ -18,7 +18,7 @@ ldg=[]
 dir_g="data"
 
 ld,ldg,a,d=get_data_genome(arg,dir_g,a,d,ld,ldg)
-#print(a[0][0:10],"\n",a[2][0:10],"\n",d,"\n",ld[0][0:10],"\n",ld[2][0:10])~~~~~~~
+#print(a[0][0:10],"\n",a[2][0:10],"\n",d,"\n",ld[0][0:10],"\n",ld[2][0:10])
 dir_hom="data_homology"
 
 a_h,d_h=get_data_homology(arg,dir_hom,a_h,d_h)
