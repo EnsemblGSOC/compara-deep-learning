@@ -29,7 +29,7 @@ if arg[-1]=="-d":
 print("Data Read")
 
 n=2 #no. of numbers neighbors
-save_after=50000 #to save data after n steps
+save_after=3 #to save data after n steps
 lsy=create_data_homology_ls(a_h,d_h,n,a,d,ld,ldg,save_after)
 print(len(lsy))
 
@@ -37,7 +37,7 @@ print("Neighbor Genes Found")
 
 gene_sequences=read_gene_sequences(a_h[0],lsy,"geneseq","gene_sequences")
 
-synteny_matrices,indexes=synteny_matrix(gene_sequences,a_h[0],lsy,n)
+synteny_matrices,indexes=synteny_matrix(gene_sequences,a_h[0][0:1000],lsy,n)
 print("Synteny Matrices are created successfully\n",len(indexes),"\n",len(synteny_matrices))
 np.save("synteny_matrices",synteny_matrices)
 np.save("indexes",indexes)
@@ -50,4 +50,5 @@ branch_length_species,branch_length_homology_species,distance,dist_p_s,dist_p_hs
 
 train_synteny_matrices,train_branch_length_species,train_branch_length_homology_species,train_mean_gene_length,train_dist_p_s,train_dist_p_hs,train_distance,train_labels=train_data(indexes,synteny_matrices,df,branch_length_species,branch_length_homology_species,distance,dist_p_s,dist_p_hs,gene_sequences)
 
-train(train_synteny_matrices,train_branch_length_species,train_branch_length_homology_species,train_mean_gene_length,train_dist_p_s,train_dist_p_hs,train_distance,train_labels)
+train(train_synteny_matrices,train_branch_length_species,train_branch_length_homology_species,train_mean_gene_length,
+            train_dist_p_s,train_dist_p_hs,train_distance,train_labels)

@@ -3,6 +3,11 @@ import pandas
 import sys
 import urllib.request as urllib
 import pandas as pd
+import json
+import requests
+import time
+
+from process_data import create_map_list
 
 
 lf=[]
@@ -24,3 +29,4 @@ def get_data_file(file,dir):
         os.mkdir(dir)
     for x in lf:
         download_data(x,dir)
+

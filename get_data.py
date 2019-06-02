@@ -4,7 +4,11 @@ from req_data import get_data_file,download_data
 from read_data import read_data_genome,read_data_homology
 from process_data import list_dict_genomes
 
-def get_data_genome(arg,dir,a,d,ld,ldg):
+def get_data_genome(arg,dir):
+    a=[]
+    d={}
+    ld=[]
+    ldg=[]
     if arg[0]=='-d':
         if arg[4]=="-r":
             c=0
@@ -28,7 +32,9 @@ def get_data_genome(arg,dir,a,d,ld,ldg):
 
     return ld,ldg,a,d
 
-def get_data_homology(arg,dir,a_h,d_h):
+def get_data_homology(arg,dir):
+    a_h=[]
+    d_h={}
     if arg[2]=="-l":
         if not os.path.exists(dir):
             os.mkdir(dir)
@@ -44,7 +50,7 @@ def get_data_homology(arg,dir,a_h,d_h):
         return a_h,d_h
 
     if arg[4]=="-r":
-        a_h,d_h=read_data_homology(dir,a_h,d_h)
+        a_h,d_h=read_data_homology(dir)
         assert(len(a_h)==len(d_h))
 
     return a_h,d_h
