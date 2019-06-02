@@ -16,21 +16,6 @@ The command line arguments are as follows:<br/>
 <b>For Example:</b><br/>
   `python main.py -f link.txt -d data_homology -r -test` will download the files given by the links in the file `link.txt` to the  `data` directory and read the downloaded files.It will also read all the files in the `data_homology` directory. The last argument shows that the  data will be downloaded as well as read. All the files will be read and selective records will be processed.
   
-The sample output for `-test` should match this at the end:<br/>
-Synteny Matrices are created successfully<br/>
- 3<br/>
- 3<br/>
-(3, 21)<br/>
-(3, 21)<br/>
-(3,)<br/>
-(3,)<br/>
-(3, 7, 7, 2)<br/>
-(3, 7, 7, 2)<br/>
-(3,)<br/>
-(3,)<br/>
-(3,)<br/>
-Data Saved Successfully to processed :)<br/>
-
 At this moment the model has been designed to work with <b>only one</b> homology database. Functionality will be updated during the course of the project.
 
 
