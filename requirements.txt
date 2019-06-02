@@ -1,0 +1,7 @@
+biopython
+numpy
+pandas
+edlib
+ete3
+tensorflow
+scikit-bio
