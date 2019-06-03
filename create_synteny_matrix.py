@@ -56,7 +56,7 @@ def create_synteny_matrix_mul(gene_seq,g1,g2,n):
             sml[i][j][1]=result/(norm_len)
     return sm,sml
 
-def synteny_matrix(gene_seq,hdf,lsy,n):
+def synteny_matrix(gene_seq,hdf,lsy,n,enable_break):
     sg=[]
     sl=[]
     t=0
@@ -91,7 +91,7 @@ def synteny_matrix(gene_seq,hdf,lsy,n):
         sl.append(smltemp)
         ind.append(index)
         t+=1
-        if t==5:
+        if t==5 and enable_break==1:
             break
     end=time.time()
     print("Time Taken:",end-start)

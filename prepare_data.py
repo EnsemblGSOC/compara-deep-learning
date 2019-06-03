@@ -57,9 +57,9 @@ else:
     gene_sequences=read_gene_sequences(a_h[0],lsy,"geneseq","gene_sequences")
 
 if enable_break==1:
-    synteny_matrices_global,synteny_matrices_local,indexes=synteny_matrix(gene_sequences,a_h[0][0:10],lsy,n)
+    synteny_matrices_global,synteny_matrices_local,indexes=synteny_matrix(gene_sequences,a_h[0][0:10],lsy,n,enable_break)
 else:    
-    synteny_matrices_global,synteny_matrices_local,indexes=synteny_matrix(gene_sequences,a_h[0],lsy,n)
+    synteny_matrices_global,synteny_matrices_local,indexes=synteny_matrix(gene_sequences,a_h[0],lsy,n,enable_break)
 
 print("Synteny Matrices are created successfully\n",len(indexes),"\n",len(synteny_matrices_global))
 np.save("processed/synteny_matrices_global",synteny_matrices_global)
