@@ -18,4 +18,4 @@ The command line arguments are as follows:<br/>
   
 At this moment the model has been designed to work with <b>only one</b> homology database. Functionality will be updated during the course of the project.
 
-
+The neighbor genes for all the genes in the <b>Homo_Sapien homology database</b> has been processed and can be found here:https://drive.google.com/drive/folders/1x3rdT-B8LLjxHqQH14a9nivtcv-IUlgz?usp=sharing
