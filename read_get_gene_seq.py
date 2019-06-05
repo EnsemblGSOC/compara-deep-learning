@@ -95,12 +95,14 @@ def read_gene_sequences(df,lsy,data_dir,fname):
             if gxr not in gene_by_species_dict[species]:
                 gene_by_species_dict[species].append(gxr)
 
-        s=[x for x in gene_by_species_dict if len(gene_by_species_dict[x])!=0]#select those species only whose gene sequences we have to read.
-        s=[x.capitalize() for x in s]
+    s=[x for x in gene_by_species_dict if len(gene_by_species_dict[x])!=0]#select those species only whose gene sequences we have to read.
+    s=[x.capitalize() for x in s]
 
-        data=read_gene_seq(data_dir,s,gene_by_species_dict)
+    print(len(s))
 
-        with open("processed/"+fname+".json","w") as file:#save the data
-            json.dump(data,file)
+    data=read_gene_seq(data_dir,s,gene_by_species_dict)
 
-        return data
+    with open("processed/"+fname+".json","w") as file:#save the data
+        json.dump(data,file)
+
+    return data
