@@ -29,14 +29,14 @@ print("Neighbor Genes Loaded")
 if enable_break==1:
     gene_sequences=read_gene_sequences(a_h,lsy,"geneseq","gene_sequences")
 else:
-    gene_sequences=read_gene_sequences(a_h[0],lsy,"geneseq","gene_sequences")
+    gene_sequences=read_gene_sequences(a_h,lsy,"geneseq","gene_sequences")
 print("Gene Sequences Loaded")
 
 
 if enable_break==1:
     save_after=10
 else:
-    save_after=250000
+    save_after=500000
 n=3
 c=0
 j=0
