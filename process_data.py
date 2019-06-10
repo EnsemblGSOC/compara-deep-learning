@@ -1,6 +1,8 @@
 import pandas
 import gc
 import numpy as np
+import json
+import progressbar
 from save_data import save_data_json
 from save_data import write_dict_json
 
@@ -13,6 +15,18 @@ def create_map_list(l): #this function maps the indexes to values
         t[l[i]]=i
 
     return t
+
+def list_dict_genomes(a,n):
+    lst=[]
+    ldt=[]
+    for x in a:
+        ldgt={}
+        uc=list(x["gene_id"])
+        for i in range(len(uc)):
+            ldgt[uc[i]]=i
+        lst.append(uc)
+        ldt.append(ldgt)
+    return lst,ldt
 
 def get_nearest_neighbors(g,gs,n,a,d,ld,ldg):
     ne=[] #list to store the backward genes
@@ -27,7 +41,7 @@ def get_nearest_neighbors(g,gs,n,a,d,ld,ldg):
     sldg=ldg[gi]#select the corresponding map
     if g not in sldg:#if the gene is not present in the dataframe return empty lists
         return ne,nr
-    i=sldg[g]#find the index of the gnes
+    i=sldg[g]#find the index of the genes
     #get the -n neighbors
     start=int(sldf.iloc[i,[3]])#get the start location of the gene
     flag=0
@@ -42,7 +56,7 @@ def get_nearest_neighbors(g,gs,n,a,d,ld,ldg):
         assert(len(end)==len(sld))
         end=end-start #subtract start from it so as to get relative position
         end_s=np.argsort(end)#sort them by the order of distance
-        if end[end_s[0]]>=0:#if all the genes end ahead of the one in considertion
+        if end[end_s[0]]>=0:#if all the genes end ahead of the one in consideration
             flag=1#increment the pointer
             ne.append("NULL_GENE")#append the NULL_GENE value
             continue
@@ -78,27 +92,18 @@ def get_nearest_neighbors(g,gs,n,a,d,ld,ldg):
 
     return ne,nr
 
-def list_dict_genomes(a,n):
-    lst=[]
-    ldt=[]
-    for x in a:
-        ldgt={}
-        uc=list(x["gene_id"])
-        for i in range(len(uc)):
-            ldgt[uc[i]]=i
-        lst.append(uc)
-        ldt.append(ldgt)
-    return lst,ldt
-
-
 def create_data_homology_ls(a_h,d_h,n,a,d,ld,ldg,save_after,enable_break):
     lsy={} #dictionary which stores +/- n genes of the given gene by id. Each key is a gene id which corresponds to the one in center.
     t=0
-    c=0
+    with open("processed/neighbor_genes.json","r") as file:
+        lsy=dict(json.load(file))
+    print("Existing neighbor genes read!!")
+    print(len(lsy))
+    c=4
     lsytemp={}
     name="neighbor_genes"
     for df in a_h:
-        for index,row in df.iterrows():
+        for _,row in progressbar.progressbar(df.iterrows()):
             x=row["gene_stable_id"]
             y=row["homology_gene_stable_id"]
             xs=row["species"]

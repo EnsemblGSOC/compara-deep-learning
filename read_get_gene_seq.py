@@ -24,8 +24,7 @@ def create_dict(keys,values,dictionary):
 
 #this function maps all the genes to their respective species.
 #(Function: when finding the species of any gene we do not need to search the entire dataframe)
-def group_seq_by_species(df):
-    g_to_sp={}
+def group_seq_by_species(df,g_to_sp):
     sph=list(df.homology_species)
     ghsp=list(df.homology_gene_stable_id)
     sp=list(df.species)
@@ -67,19 +66,24 @@ def read_gene_seq(dirname,s,genes_by_species):
                     data[gid]=str(r.seq)
     return data
 
-def read_gene_sequences(df,lsy,data_dir,fname):
+def read_gene_sequences(hdf,lsy,data_dir,fname):
 
     """The basic idea here is to create a list/dictionary of all the genes by their species.
        Once the mapping is done, all the respective fasta sequence files are read by Species
        and the CDNA sequences for each gene in the species record are read and stored.
        Thus we don't have to read the same file multiple times."""
-
-    grouped_genes=group_seq_by_species(df)
+    grouped_genes={}
     gene_by_species_dict={}
-    for i in df.homology_species.unique():
-        gene_by_species_dict[i]=[]
+    for df in hdf:
+        grouped_genes=group_seq_by_species(df,grouped_genes)        
+        for i in df.homology_species.unique():
+            if i not in gene_by_species_dict:
+                gene_by_species_dict[i]=[]
     for x in lsy:
-        species=grouped_genes[x]#get the species
+        try:
+            species=grouped_genes[x]#get the species
+        except:
+            continue
         if x not in gene_by_species_dict[species]:#check if the gene already exists in the species dict or not.
             gene_by_species_dict[species].append(x)
         xl=lsy[x]['b']
@@ -94,12 +98,11 @@ def read_gene_sequences(df,lsy,data_dir,fname):
                 break
             if gxr not in gene_by_species_dict[species]:
                 gene_by_species_dict[species].append(gxr)
+        
 
     s=[x for x in gene_by_species_dict if len(gene_by_species_dict[x])!=0]#select those species only whose gene sequences we have to read.
     s=[x.capitalize() for x in s]
-
-    print(len(s))
-
+    
     data=read_gene_seq(data_dir,s,gene_by_species_dict)
 
     with open("processed/"+fname+".json","w") as file:#save the data

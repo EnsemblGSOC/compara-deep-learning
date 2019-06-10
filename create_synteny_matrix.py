@@ -45,7 +45,7 @@ def create_synteny_matrix_mul(gene_seq,g1,g2,n):
         for j in range(n):
             if g2[j]=="NULL_GENE":
                 continue
-            norm_len=(len(gene_seq[g1[i]])+len(gene_seq[g2[j]]))
+            norm_len=max(len(gene_seq[g1[i]]),len(gene_seq[g2[j]]))
             result = ed.align(gene_seq[g1[i]],gene_seq[g2[j]], mode="NW", task="distance")
             sm[i][j][0]=result["editDistance"]/(norm_len)
             result = ed.align(gene_seq[g1[i]],gene_seq[g2[j]][::-1], mode="NW", task="distance")
@@ -94,6 +94,6 @@ def synteny_matrix(gene_seq,hdf,lsy,n,enable_break):
         if t==5 and enable_break==1:
             break
     end=time.time()
-    print("Time Taken:",end-start)
-    print("Average Time:",(end-start)/len(sg))
+    #print("Time Taken:",end-start)
+    #print("Average Time:",(end-start)/len(sg))
     return np.array(sg),np.array(sl),np.array(ind)
