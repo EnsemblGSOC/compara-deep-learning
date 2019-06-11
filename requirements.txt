@@ -6,3 +6,5 @@ ete3
 tensorflow
 scikit-bio
 progressbar2
+seaborn
+matplotlib
