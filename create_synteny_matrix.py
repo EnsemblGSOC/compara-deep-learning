@@ -8,16 +8,21 @@ from skbio.alignment import local_pairwise_align_ssw
 from skbio import DNA,TabularMSA,RNA
 
 def update(gene_seq,gene):
-    server = "https://rest.ensembl.org"
-    ext = "/sequence/id/"+str(gene)+"?"
+    while(1):
+        try:
+            server = "https://rest.ensembl.org"
+            ext = "/sequence/id/"+str(gene)+"?"
 
-    r = requests.get(server+ext, headers={ "Content-Type" : "text/plain"})
+            r = requests.get(server+ext, headers={ "Content-Type" : "text/plain"})
 
-    if not r.ok:
-        r.raise_for_status()
-        sys.exit()
+            if not r.ok:
+                r.raise_for_status()
+                sys.exit()
 
-    gene_seq[gene]=str(r.text)
+            gene_seq[gene]=str(r.text)
+            return
+        except:
+            continue
 
 def create_synteny_matrix_mul(gene_seq,g1,g2,n):
     for gene in g1:
@@ -46,14 +51,17 @@ def create_synteny_matrix_mul(gene_seq,g1,g2,n):
             if g2[j]=="NULL_GENE":
                 continue
             norm_len=max(len(gene_seq[g1[i]]),len(gene_seq[g2[j]]))
-            result = ed.align(gene_seq[g1[i]],gene_seq[g2[j]], mode="NW", task="distance")
-            sm[i][j][0]=result["editDistance"]/(norm_len)
-            result = ed.align(gene_seq[g1[i]],gene_seq[g2[j]][::-1], mode="NW", task="distance")
-            sm[i][j][1]=result["editDistance"]/(norm_len)
-            _,result,_=local_pairwise_align_ssw(DNA(gene_seq[g1[i]]),DNA(gene_seq[g2[j]]))
-            sml[i][j][0]=result/(norm_len)
-            _,result,_=local_pairwise_align_ssw(DNA(gene_seq[g1[i]]),DNA(gene_seq[g2[j]][::-1]))
-            sml[i][j][1]=result/(norm_len)
+            try:
+                result = ed.align(gene_seq[g1[i]],gene_seq[g2[j]], mode="NW", task="distance")
+                sm[i][j][0]=result["editDistance"]/(norm_len)
+                result = ed.align(gene_seq[g1[i]],gene_seq[g2[j]][::-1], mode="NW", task="distance")
+                sm[i][j][1]=result["editDistance"]/(norm_len)
+                _,result,_=local_pairwise_align_ssw(DNA(gene_seq[g1[i]]),DNA(gene_seq[g2[j]]))
+                sml[i][j][0]=result/(norm_len)
+                _,result,_=local_pairwise_align_ssw(DNA(gene_seq[g1[i]]),DNA(gene_seq[g2[j]][::-1]))
+                sml[i][j][1]=result/(norm_len)
+            except:
+                return np.zeros((n,n,2)),np.zeros((n,n,2))
     return sm,sml
 
 def synteny_matrix(gene_seq,hdf,lsy,n,enable_break):
@@ -87,6 +95,8 @@ def synteny_matrix(gene_seq,hdf,lsy,n,enable_break):
         assert(len(x)==len(y))
         assert(len(x)==(2*n+1))
         smgtemp,smltemp=create_synteny_matrix_mul(gene_seq,x,y,2*n+1)
+        if np.all(smgtemp==0):
+            continue
         sg.append(smgtemp)
         sl.append(smltemp)
         ind.append(index)
