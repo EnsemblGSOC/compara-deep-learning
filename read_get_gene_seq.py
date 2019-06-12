@@ -1,8 +1,10 @@
 import json
 from Bio import SeqIO
+import numpy as np
 import pandas as pd
 import os
 import gzip
+import progressbar
 
 def read_from_multiple_lsy(lsyfl):
     lsy={}
@@ -56,7 +58,7 @@ def read_gene_seq(dirname,s,genes_by_species):
         if f.split(".")[0] in s:#check whether the species is present in the species to read list. Will skip those species which are not present in the dataframe
             ftr.append(f)
     data={}
-    for f in ftr:
+    for f in progressbar.progressbar(ftr):
         species=f.split(".")[0].lower()
         with gzip.open(dirname+"/"+f,"rt") as file:
             record=SeqIO.parse(file,"fasta")
@@ -74,12 +76,14 @@ def read_gene_sequences(hdf,lsy,data_dir,fname):
        Thus we don't have to read the same file multiple times."""
     grouped_genes={}
     gene_by_species_dict={}
-    for df in hdf:
+    for df in progressbar.progressbar(hdf):
         grouped_genes=group_seq_by_species(df,grouped_genes)        
         for i in df.homology_species.unique():
-            if i not in gene_by_species_dict:
-                gene_by_species_dict[i]=[]
-    for x in lsy:
+            gene_by_species_dict[i]=[]
+        for i in df.species.unique():
+            gene_by_species_dict[i]=[]
+            
+    for x in progressbar.progressbar(lsy):
         try:
             species=grouped_genes[x]#get the species
         except:

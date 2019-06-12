@@ -4,6 +4,7 @@ import edlib as ed
 import pandas as pd
 import time
 import sys
+import progressbar
 from skbio.alignment import local_pairwise_align_ssw
 from skbio import DNA,TabularMSA,RNA
 
@@ -31,7 +32,7 @@ def create_synteny_matrix_mul(gene_seq,g1,g2,n):
         try:
             temp=gene_seq[gene]
         except:
-            print("Updating gene sequences for gene:",gene)
+            #print("Updating gene sequences for gene:",gene)
             update(gene_seq,gene)
     for gene in g2:
         if gene=="NULL_GENE":
@@ -39,7 +40,7 @@ def create_synteny_matrix_mul(gene_seq,g1,g2,n):
         try:
             temp=gene_seq[gene]
         except:
-            print("Updating gene sequences for gene:",gene)
+            #print("Updating gene sequences for gene:",gene)
             update(gene_seq,gene)
     #print(n)
     sm=np.zeros((n,n,2))
@@ -70,7 +71,7 @@ def synteny_matrix(gene_seq,hdf,lsy,n,enable_break):
     t=0
     ind=[]
     start=time.time()
-    for index,row in hdf.iterrows():
+    for index,row in progressbar.progressbar(hdf.iterrows()):
         g1=str(row["gene_stable_id"])
         g2=str(row["homology_gene_stable_id"])
         x=[]

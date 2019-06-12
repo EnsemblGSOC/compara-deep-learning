@@ -2,6 +2,7 @@ import pandas
 import gc
 import numpy as np
 import json
+import os
 import progressbar
 from save_data import save_data_json
 from save_data import write_dict_json
@@ -92,13 +93,14 @@ def get_nearest_neighbors(g,gs,n,a,d,ld,ldg):
 
     return ne,nr
 
-def create_data_homology_ls(a_h,d_h,n,a,d,ld,ldg,save_after,enable_break):
+def create_data_homology_ls(a_h,d_h,n,a,d,ld,ldg,save_after,enable_break,update):
     lsy={} #dictionary which stores +/- n genes of the given gene by id. Each key is a gene id which corresponds to the one in center.
     t=0
-    with open("processed/neighbor_genes.json","r") as file:
-        lsy=dict(json.load(file))
-    print("Existing neighbor genes read!!")
-    print(len(lsy))
+    if os.path.exists("processed/neighbor_genes.json"):  
+        with open("processed/neighbor_genes.json","r") as file:
+            lsy=dict(json.load(file))
+        print("Existing neighbor genes read!!")
+        print(len(lsy))
     c=4
     lsytemp={}
     name="neighbor_genes"
@@ -131,14 +133,15 @@ def create_data_homology_ls(a_h,d_h,n,a,d,ld,ldg,save_after,enable_break):
                 except:
                     continue
             t+=1
-            if t>=save_after:
+            if t>=save_after and update==0:
                 t=0
                 c+=1
                 write_dict_json(name+str(c),"processed",lsytemp)
                 lsytemp={}
                 if enable_break==1:
                     break
-    c+=1
-    write_dict_json(name+str(c),"processed",lsytemp)
+    if not update:
+        c+=1
+        write_dict_json(name+str(c),"processed",lsytemp)
     write_dict_json(name,"processed",lsy)
     return lsy
