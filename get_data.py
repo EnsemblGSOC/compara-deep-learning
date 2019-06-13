@@ -2,7 +2,7 @@ import sys
 import os
 from req_data import get_data_file,download_data
 from read_data import read_data_genome,read_data_homology
-from process_data import list_dict_genomes
+from process_data import list_dict_genomes,create_chromosome_maps
 
 def get_data_genome(arg,dir):
     a=[]
@@ -22,15 +22,16 @@ def get_data_genome(arg,dir):
     if arg[4]=="-r":
         a,d=read_data_genome(dir,a,d)
         assert(len(a)==len(d))
-
+        print("Creating Maps:")
         ld,ldg=list_dict_genomes(a,d)
+        cmap,cimap=create_chromosome_maps(a,d)
 
         assert(len(ld)==len(ldg))
 
         for i in range(len(ld)):
             assert(len(ld[i])==len(ldg[i]))
 
-    return ld,ldg,a,d
+    return cmap,cimap,ld,ldg,a,d
 
 def get_data_homology(arg,dir):
     a_h=[]
