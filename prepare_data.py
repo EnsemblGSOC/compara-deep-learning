@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import json
 import os
+import gc
 from get_data import get_data_homology,get_data_genome
 from process_data import create_data_homology_ls
 from read_get_gene_seq import read_gene_sequences
@@ -46,8 +47,14 @@ if enable_break==1:
 else:
     save_after=1000000
 
-lsy=create_data_homology_ls(a_h,d_h,n,a,d,ld,ldg,save_after,enable_break)
+lsy=create_data_homology_ls(a_h,d_h,n,a,d,ld,ldg,save_after,enable_break,0)
 print(len(lsy))
+
+a=[]
+d=[]
+ld=[]
+ldg=[]
+gc.collect()
 
 print("Neighbor Genes Found")
 
