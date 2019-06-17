@@ -147,7 +147,7 @@ def create_data_homology_ls(a_h,d_h,n,a,d,ld,ldg,cmap,cimap,save_after,enable_br
                     if len(xl)!=0:#check if neighboring genes were successfully found
                         lsy[x]=dict(b=xl,f=xr)
                         lsytemp[x]=dict(b=xl,f=xr)
-                except Exception as e:
+                except:
                     continue
             try:
                 z=lsy[y]

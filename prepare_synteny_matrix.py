@@ -7,6 +7,7 @@ import json
 from read_data import read_data_homology
 from read_get_gene_seq import read_gene_sequences
 from create_synteny_matrix import synteny_matrix
+from access_data_rest import update_rest
 
 if not os.path.isdir("processed/synteny_matrices"):
     os.mkdir("processed/synteny_matrices")
@@ -29,6 +30,8 @@ for i in range(len(a_h)):
     assert(len(df)==nos)
     a_h[i]=df
 
+print("Data Selected")
+
 with open("processed/neighbor_genes.json","r") as file:
     lsy=dict(json.load(file))
 print(len(lsy))
@@ -38,6 +41,8 @@ print("Neighbor Genes Loaded")
 gene_sequences=read_gene_sequences(a_h,lsy,"geneseq","gene_sequences")
 print("Gene Sequences Loaded")
 
+print("Going to update not found sequences:")
+gene_sequences=update_rest(gene_sequences)
 
 n=3
 ndir="processed/synteny_matrices/"
@@ -46,9 +51,10 @@ nf2="synteny_matrices_local"
 nf3="indexes"
 for i in range(len(a_h)):
     df=a_h[i]
+    print(len(df))
     synteny_matrices_global,synteny_matrices_local,indexes=synteny_matrix(gene_sequences,df,lsy,n,0)
     np.save(ndir+str(d_h[i])+"_"+nf1,synteny_matrices_global)
     np.save(ndir+str(d_h[i])+"_"+nf2,synteny_matrices_local)
     np.save(ndir+str(d_h[i])+"_"+nf3,indexes)
-        
+    print(len(indexes))    
 print("Synteny Matrices Created Successfully :)")
