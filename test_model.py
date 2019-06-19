@@ -3,12 +3,14 @@ import numpy as np
 import pandas as pd 
 import requests 
 import sys
+import pickle
 from get_data import get_data_genome
 from process_data import get_nearest_neighbors
 from create_synteny_matrix import create_synteny_matrix_mul
 from ete3 import Tree
 import traceback
 
+"""
 arg=sys.argv
 arg=arg[1:]
 
@@ -24,7 +26,18 @@ if len(arg)!=5:
     sys.exit(1)
 
 dir_g="data"
-cmap,cimap,ld,ldg,a,d=get_data_genome(arg,dir_g)
+cmap,cimap,ld,ldg,a,d=get_data_genome(arg,dir_g)"""
+
+data={}
+with open("genome_maps","rb") as file:
+    data=pickle.load(file)
+cmap=data["cmap"]
+cimap=data["cimap"]
+ld=data["ld"]
+ldg=data["ldg"]
+a=data["a"]
+d=data["d"]
+
 n=3
 
 server = "https://rest.ensembl.org"
@@ -166,6 +179,3 @@ with tf.Session() as sess:
             print("Some Error Was There Try Again:(",e)
             traceback.print_exc()
             continue
-        
-        
-            
