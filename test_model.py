@@ -6,7 +6,7 @@ import sys
 import pickle
 from get_data import get_data_genome
 from process_data import get_nearest_neighbors
-from create_synteny_matrix import create_synteny_matrix_mul
+from create_synteny_matrix_v2 import create_synteny_matrix_mul
 from ete3 import Tree
 import traceback
 
