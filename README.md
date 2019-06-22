@@ -52,7 +52,7 @@ all the `cds` sequence files are present in the `geneseq` directory, but this is
 All the synteny matrices are created and stored in `processed/synteny_matrices` directory in `.npy` format.<br/>
 <br/> **Extract Other Features:**<br/>
 This will extract other features from the species trees.
-Run this command:
+Run this command:<br/>
 `python prepare_other_features.py`<br/>.
 After the completion of this process you should get a binary file named `dataset` in the directory.<br/>
 
@@ -60,3 +60,18 @@ After the completion of this process you should get a binary file named `dataset
 <img src="https://nzspo96lr1-flywheel.netdna-ssl.com/wp-content/uploads/2017/09/tenor.gif" alt="I know, right!!" /> 
 <br/>
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*(I know right)* 
+
+## TO PREPARE NEGATIVE DATASET:
+This dataset will contain the gene pairs which are not homologous to each other. <br/>
+**Sample the Negative Dataset:**<br/>
+Negative dataset takes one gene from the homology database and another gene from the `gtf` files which is not present in any of the homology databases read. This ensures that the two genes selected belong to mutually exclusive sets and hence are not homologous to each other.<br/>
+To sample the negative dataset run this command:<br/>
+`python prepare_negative_dataset.py nos random_seed` where<br/>
+`nos`:number of rows to sample from the dataset.<br/>
+`random_seed`:a random number to seed the random number generator.<br/>
+
+**Update Neigbor Genes**<br/>
+(Again!!!, ¯\\_(ツ)_/¯). To update the neighbor genes with the new sampled dataset use this command:<br/>
+`python update_neighbor_genes.py` <br/>
+
+
