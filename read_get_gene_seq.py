@@ -108,8 +108,16 @@ def read_gene_sequences(hdf,lsy,data_dir,fname):
     s=[x.capitalize() for x in s]
     
     data=read_gene_seq(data_dir,s,gene_by_species_dict)
+    not_found={}
+    for species in gene_by_species_dict:
+        for gene in gene_by_species_dict[species]:
+            try:
+                _=data[gene]
+            except:
+                not_found[gene]=1
 
+    with open("processed/not_found.json","w") as file:
+        json.dump(not_found,file)
     with open("processed/"+fname+".json","w") as file:#save the data
         json.dump(data,file)
-
     return data

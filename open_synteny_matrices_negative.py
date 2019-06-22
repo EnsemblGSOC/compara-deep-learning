@@ -1,4 +1,5 @@
 import numpy as np 
+import pandas as pd
 import os
 import json
 import gc
@@ -7,8 +8,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.backends.backend_pdf import PdfPages
 
-a_h,d_h=read_data_homology("data_homology")
-d_h=list(d_h.keys())
+a_h=[]
+d_h=[]
+df=pd.read_hdf("negative_dataset.h5",key="ndf")
 
 ndir="processed/synteny_matrices/"
 nf1="_synteny_matrices_global"
@@ -18,33 +20,21 @@ nf3="_indexes"
 lsy={}
 with open("processed/neighbor_genes.json","r") as file:
     lsy=dict(json.load(file))
+print("Neighbor Genes Loaded")
 
-for i in range(len(d_h)):
-    print("{}.{}".format(i+1,d_h[i]))
+synteny_matrices_global=np.load(ndir+"negative_dataset"+nf1+str(6)+".npy")
+synteny_matrices_local=np.load(ndir+"negative_dataset"+nf2+str(6)+".npy")
+indexes=np.load(ndir+"negative_dataset"+nf3+str(6)+".npy")
+df=df.loc[indexes]
 
-while(1):
-    try:
-        ch=int(input("Enter your choice:"))
-        synteny_matrices_global=np.load(ndir+str(d_h[ch-1])+nf1+".npy")
-        synteny_matrices_local=np.load(ndir+str(d_h[ch-1])+nf2+".npy")
-        indexes=np.load(ndir+str(d_h[ch-1])+nf3+".npy")
-        print(len(indexes))
-        break
-    except:
-        print("Choice invalid or incomplete files!!!!!. Try Another Index.")
-
-df=a_h[ch-1].loc[indexes]
-a_h=[]
-gc.collect()
+print(indexes[0:1000])
+ng=["Levenshtein Distance","Levenshtein Distance Reverse"]
+nl=["Local Alignment Score","Local Alignment Score Reverse"]
 
 inddict={}
 for i in range(len(indexes)):
     inddict[indexes[i]]=i
 
-ng=["Levenshtein Distance","Levenshtein Distance Reverse"]
-nl=["Local Alignment Score","Local Alignment Score Reverse"]
-
-print(indexes)
 while(1):
     try:
         i=int(input("Enter the index:"))
@@ -65,7 +55,7 @@ while(1):
         text+="\n"+"Gene Stable Id:"+df.loc[i].gene_stable_id
         text+="\n"+"Homology Species:"+df.loc[i].homology_species
         text+="\n"+"Homology Gene Stable Id:"+df.loc[i].homology_gene_stable_id
-        text+="\n"+"Homology Type:"+df.loc[i].homology_type
+        text+="\n"+"Homology Type:"+"Non Homology"
         fp=plt.figure(figsize=(10,10))
         fp.text(0.5,0.5,text,ha="center",fontdict=font)
         pdf.savefig()
@@ -119,5 +109,4 @@ while(1):
         pdf.close()
     else:
         print("Index not found")
-
 

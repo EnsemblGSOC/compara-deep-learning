@@ -27,12 +27,11 @@ if len(arg)!=5:
 dir_g="data"
 cmap,cimap,ld,ldg,a,d=get_data_genome(arg,dir_g)
 
-dir_hom="data_homology"
-a_h,d_h=get_data_homology(arg,dir_hom)
-
-if arg[-1]=="-d":
-    sys.exit(1)
-
+df=pd.read_hdf("negative_dataset.h5",key="ndf")
+a_h=[]
+d_h=[]
+a_h.append(df)
+d_h.append("negative_dataset")
 print("Data Read")
 
 n=3 #no. of numbers neighbors
@@ -40,8 +39,4 @@ save_after=5 #to save data after n steps
 
 lsy=create_data_homology_ls(a_h,d_h,n,a,d,ld,ldg,cmap,cimap,save_after,enable_break,1)
 print(len(lsy))
-
 print("Neighbor Genes Updated Successfully")
-
-
-

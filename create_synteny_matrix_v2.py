@@ -71,11 +71,6 @@ def create_synteny_matrix_mul(gene_seq,g1,g2,n):
                 sm[i][j][0]=result["editDistance"]/(norm_len)
                 result = ed.align(gene_seq[g1[i]],gene_seq[g2[j]][::-1], mode="NW", task="distance")
                 sm[i][j][1]=result["editDistance"]/(norm_len)
-                _,result,_=local_pairwise_align_ssw(DNA(gene_seq[g1[i]]),DNA(gene_seq[g2[j]]))
-                sml[i][j][0]=result/(norm_len)
-                _,result,_=local_pairwise_align_ssw(DNA(gene_seq[g1[i]]),DNA(gene_seq[g2[j]][::-1]))
-                sml[i][j][1]=result/(norm_len)
-
             except:
                 return np.zeros((n,n,2)),np.zeros((n,n,2))
     return sm,sml

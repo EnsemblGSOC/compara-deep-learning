@@ -1,5 +1,16 @@
 from ete3 import Tree
 import numpy as np
+import progressbar
+
+def create_branch_length_padding(bl):
+    maxlen=0
+    for x in bl:
+        if len(x)>maxlen:
+            maxlen=len(x)
+
+    for x in bl:
+        for i in range(len(x),maxlen):
+            x.append(0)
 
 def create_tree_data(treename,df):
     t=Tree(treename)
@@ -8,7 +19,7 @@ def create_tree_data(treename,df):
     dist=[]
     ns=[]
     nhs=[]
-    for index,row in df.iterrows():
+    for index,row in progressbar.progressbar(df.iterrows()):
         d=0
         x=row["species"]
         y=row["homology_species"]
@@ -34,4 +45,6 @@ def create_tree_data(treename,df):
         nhs.append(c)
         branch_lengths_hs.append(bl)
         dist.append(d)
+    create_branch_length_padding(branch_lengths_s)
+    create_branch_length_padding(branch_lengths_hs)
     return np.array(branch_lengths_s),np.array(branch_lengths_hs),np.array(dist),np.array(ns),np.array(nhs)
