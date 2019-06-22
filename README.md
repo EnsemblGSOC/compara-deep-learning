@@ -39,13 +39,13 @@ To find the neighboring genes of the homologous genes in the databases run this 
 `python update_neighbor_genes.py -d path -r -test` to test the file for 5 samples or you can directly run:<br/>
 `python update_neighbor_genes.py -d path -r -run`. <br/>
 It will update/create the `neighbor_genes.json` file in the `processed` directory.<br/>
-<br/>**Prepare Synteny Matrices:**
-The aim is to get all the alignments of the genes with respect to one another. This step will create the synteny matrix for each record in the datset where the *i,jth* entry of the matrix is the alignment of *ith* gene with *jth* gene. We use both local and global alignments. Also to provide extra features each *ith* gene is reversed and again the alignment is taken again with the *jth* gene. This solves two purposes:<br/>
+<br/>**Prepare Synteny Matrices:**<br/>
+The aim is to get all the alignments of the homologous neighboring genes with respect to one another. This step will create the synteny matrix for each record in the datset where the *i,jth* entry of the matrix is the alignment of *ith* gene with *jth* gene. We use both local and global alignments. Also to provide extra features each *ith* gene is reversed and again the alignment is taken again with the *jth* gene. This has two purposes:<br/>
  1.It makes sure that the `+` strand gene sequence is always aligned with `+` strand gene sequence and vice-versa.<br/>
  2.It provides an extra depth to the synteny matrix which helps in better recognition of features.<br/>
 
 To prepare synteny matrices run this command:<br/>
-`python prepare_synteny_matrices.py nos` where:<br/>
+`python prepare_synteny_matrix.py nos` where:<br/>
 `nos` is an integer specifying the number of rows that you want to sample from each file to prepare the dataset. 
 This file assumes that:<br/>
 `neighbor_genes.json` is present in the `processed` sub-directory.<br/>
@@ -88,4 +88,30 @@ To extract other features run this command:<br/>
 
 **NOW WE HAVE BOTH: A DATASET CONTAINING POSITIVE SAMPLES AND A DATASET CONTAINING NEGATIVE SAMPLES**<br/>
 <img src="https://memegenerator.net/img/instances/80311513/yes-we-did-it.jpg" height="200" width="350" alt="I know, right!!" />
+
+## STEP 2: TRAIN THE MODEL:
+This will come later.<br/>
+
+## STEP 3: TESTING THE MODEL:
+Download the model from [here](https://drive.google.com/open?id=1_TmsH8uLrKAmZKbCOqRo33by0n7jFvty) and extract it to the code directory.<br/>
+**To test the model** run:<br/>
+`python test_model.py` <br/>
+It asks for a gene id and a second gene id and predicts the homology type.<br/>
+
+## SUMMARY:
+I know you are probably thinking (and angry,bored,frustrated) "*Why did I have to read this long guide when I could have directly come here*" or you have directly scrolled to this(as you were checking how long the page is, *we all have been there*), So congratulations!! you have come to the right point.<br/>
+The simple step by step summaray is:<br/>
+1. Run `ftpg.py` and enter `y` when it asks to download for file. Believe me, you don't want to do it manually there are **199** of them.<br/>
+2. Download the homology databases of your choice and rename them with this format `species_name.tsv.gz`.<br/>
+3. Run `create_genome_maps.py -d data -r` to create genome maps.<br/>
+4. Run `update_neighbor_genes.py -d data_homology -r -run` to create/update the neighboring genes map file.<br/>
+5. Run `prepare_synteny_matrix.py nos` to sample `nos` records from the dataset and create their synteny matrices.<br/>
+6. Run `prepare_other_features.py` to finalize the positive dataset.<br/>
+7. Run `prepare_negative_dataset.py nos random_seed` to sample the negative dataset.<br/>
+8. Run `update_neighbor_genes.py` to update the neighbor genes file.<br/>
+9. Run `prepare_synteny_matrix_negative.py` to prepare the synteny matrices.<br/>
+10. Run `prepare_other_features_negative.py` to finalize the negative dataset.<br/>
+
+**To test the model:**<br/>
+Run `test_model.py` with the genome_maps.<br/>
 
