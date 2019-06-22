@@ -54,7 +54,8 @@ This will extract other features from the species trees.
 Run this command:
 `python prepare_other_features.py`<br/>.
 After the completion of this process you should get a binary file named `dataset` in the directory.<br/>
+
+**TILL NOW WE HAVE PREPARED ONLY THE DATASET CONTAINING POSITIVE SAMPLES.**  <br/>
+<img src="https://nzspo96lr1-flywheel.netdna-ssl.com/wp-content/uploads/2017/09/tenor.gif" alt="I know, right!!" /> 
 <br/>
-**TILL NOW WE HAVE PREPARED ONLY THE DATASET CONTAINING POSITIVE SAMPLES.**  
-<br/>
-<img src="https://nzspo96lr1-flywheel.netdna-ssl.com/wp-content/uploads/2017/09/tenor.gif" alt="I know, right!!" />                      *(I know right)*
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*(I know right)* 
