@@ -10,16 +10,16 @@ def get_data_genome(arg,dir):
     ld=[]
     ldg=[]
     if arg[0]=='-d':
-        if arg[4]=="-r":
+        if arg[2]=="-r":
             c=0
         else:
-            return a,d,ld,ldg
+            return a,d,ld,ldg,dict(),dict()
     elif arg[0]=='-f':
         get_data_file(arg[1],dir)
     elif arg[0]=="-nd":
-        return ld,ldg,a,d
+        return ld,ldg,a,d,dict(),dict()
 
-    if arg[4]=="-r":
+    if arg[2]=="-r":
         a,d=read_data_genome(dir,a,d)
         assert(len(a)==len(d))
         print("Creating Maps:")

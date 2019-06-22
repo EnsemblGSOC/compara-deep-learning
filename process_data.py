@@ -120,7 +120,7 @@ def get_nearest_neighbors(g,gs,n,a,d,ld,ldg,cmap,cimap):
         end=int(sldf.loc[itemp].end)
     return ne,nr
 
-def create_data_homology_ls(a_h,d_h,n,a,d,ld,ldg,cmap,cimap,save_after,enable_break,update):
+def create_data_homology_ls(a_h,d_h,n,a,d,ld,ldg,cmap,cimap,save_after,enable_break):
     lsy={} #dictionary which stores +/- n genes of the given gene by id. Each key is a gene id which corresponds to the one in center.
     t=0
     if os.path.exists("processed/neighbor_genes.json"):  
@@ -161,15 +161,8 @@ def create_data_homology_ls(a_h,d_h,n,a,d,ld,ldg,cmap,cimap,save_after,enable_br
                 except:
                     continue
             t+=1
-            if t>=save_after and update==0:
-                t=0
-                c+=1
-                write_dict_json(name+str(c),"processed",lsytemp)
-                lsytemp={}
+            if t>=save_after:                
                 if enable_break==1:
                     break
-    if not update:
-        c+=1
-        write_dict_json(name+str(c),"processed",lsytemp)
     write_dict_json(name,"processed",lsy)
     return lsy

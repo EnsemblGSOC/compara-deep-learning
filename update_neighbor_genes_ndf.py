@@ -4,6 +4,7 @@ import pandas as pd
 import json
 import os
 import gc
+import pickle
 from get_data import get_data_homology,get_data_genome
 from process_data import create_data_homology_ls
 
@@ -20,12 +21,19 @@ if arg[-1]=="-test":
 
 arg=arg[:-1]
 
-if len(arg)!=5:
+if len(arg)!=3:
     print("No. of arguments more or less. Please check")
     sys.exit(1)
 
-dir_g="data"
-cmap,cimap,ld,ldg,a,d=get_data_genome(arg,dir_g)
+data={}
+with open("genome_maps","rb") as file:
+    data=pickle.load(file)
+cmap=data["cmap"]
+cimap=data["cimap"]
+ld=data["ld"]
+ldg=data["ldg"]
+a=data["a"]
+d=data["d"]
 
 df=pd.read_hdf("negative_dataset.h5",key="ndf")
 a_h=[]
@@ -37,6 +45,6 @@ print("Data Read")
 n=3 #no. of numbers neighbors
 save_after=5 #to save data after n steps
 
-lsy=create_data_homology_ls(a_h,d_h,n,a,d,ld,ldg,cmap,cimap,save_after,enable_break,1)
+lsy=create_data_homology_ls(a_h,d_h,n,a,d,ld,ldg,cmap,cimap,save_after,enable_break)
 print(len(lsy))
 print("Neighbor Genes Updated Successfully")
