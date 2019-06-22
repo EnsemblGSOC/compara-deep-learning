@@ -39,9 +39,11 @@ To find the neighboring genes of the homologous genes in the databases run this 
 It will update/create the `neighbor_genes.json` file in the `processed` directory.<br/>
 <br/>**Prepare Synteny Matrices:**
 The aim is to get all the alignments of the genes with respect to one another. This step will create the synteny matrix for each record in the datset where the *i,jth* entry of the matrix is the alignment of *ith* gene with *jth* gene. We use both local and global alignments. Also to provide extra features each *ith* gene is reversed and again the alignment is taken again with the *jth* gene. This solves two purposes:<br/>
-1. It makes sure that the `+` strand gene sequence is always aligned with `+` strand gene sequence and vice-versa .<br/>
-2. It provides an extra depth to the synteny matrix which helps in better recognition of features.<br/>
-To prepare the synteny matrices run this command:
+<ol>
+<li>It makes sure that the `+` strand gene sequence is always aligned with `+` strand gene sequence and vice-versa.</li>
+<li>It provides an extra depth to the synteny matrix which helps in better recognition of features.</li>
+</ol>
+
 `python prepare_synteny_matrices.py nos` where:<br/>
 `nos` is an integer specifying the number of rows that you want to sample from each file to prepare the dataset. 
 This file assumes that:<br/>
