@@ -24,12 +24,14 @@ The designated folders to store the files are as follows:<br/>
 `data_homology` all the homology databases that you want to use.<br/>
 `geneseq`To store the `cds` sequence files in `fasta` format.<br/>
 You can assign different folder names if you want but it's better to stick to them. <br/>
+
 **Create Genome Maps:**<br/>
 The purpose is to create maps of all the genes present in the `gtf` files with respect to their chromosomes, a map of all the genes belonging to the same chromosome in the given species, a map of all the genes in the given species, a map of all the species whose data has been successfully read.<br/>
 To create genome maps run this command:<br/>
 `python create_genome_maps.py -d path -r` where:<br/>
 `path`: link to the directory where all the `gtf` files exist. If you have used `ftpg.py` then the path is `data`. <br/>
 Note: Genome Maps can be downloaded from this [link](https://drive.google.com/open?id=1GjV6dT-Hpf2LWQ-vSpekqqQ7RF_tH8So).<br/>
+
 **Create/Update Neighbor Genes File:**<br/>
 This project uses the measure of conserved synteny to predict the homology type. Therefore, to predict the homology type we need to find the neighboring genes of the given homologous pair of genes. <br/>
 This file finds the neighboring genes of all the rows in the given databases and writes it to a file called `processed/neighbor_genes.json` .<br/>
@@ -73,5 +75,17 @@ To sample the negative dataset run this command:<br/>
 **Update Neigbor Genes**<br/>
 (Again!!!, ¯\\_(ツ)_/¯). To update the neighbor genes with the new sampled dataset use this command:<br/>
 `python update_neighbor_genes.py` <br/>
+*(Seriously!,That's just it)*
+<br/>
 
+**Prepare Synteny Matices**<br/>
+To prepare the synteny matrices use this command:<br/>
+`python prepare_synteny_matrix_negative.py`<br/>
+
+**Extract Other Features:**<br/>
+To extract other features run this command:<br/>
+`python prepare_other_features_negative.py` <br/>
+
+**NOW WE HAVE BOTH: A DATASET CONTAINING POSITIVE SAMPLES AND A DATASET CONTAINING NEGATIVE SAMPLES**<br/>
+<img src="https://memegenerator.net/img/instances/80311513/yes-we-did-it.jpg" height="200" width="350" alt="I know, right!!" />
 
