@@ -55,6 +55,6 @@ Run this command:
 `python prepare_other_features.py`<br/>.
 After the completion of this process you should get a binary file named `dataset` in the directory.<br/>
 <br/>
-**TILL NOW WE HAVE PREPARED ONLY THE DATASET CONTAINING POSITIVE SAMPLES.**  <br/>
-<img src="https://nzspo96lr1-flywheel.netdna-ssl.com/wp-content/uploads/2017/09/tenor.gif" alt="I know, right!!"/>
-<br/>                          *(I know right)*
+**TILL NOW WE HAVE PREPARED ONLY THE DATASET CONTAINING POSITIVE SAMPLES.**  
+<br/>
+<img src="https://nzspo96lr1-flywheel.netdna-ssl.com/wp-content/uploads/2017/09/tenor.gif" alt="I know, right!!" />                      *(I know right)*
