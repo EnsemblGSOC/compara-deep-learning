@@ -74,7 +74,7 @@ To sample the negative dataset run this command:<br/>
 
 **Update Neigbor Genes**<br/>
 (Again!!!, ¯\\_(ツ)_/¯). To update the neighbor genes with the new sampled dataset use this command:<br/>
-`python update_neighbor_genes.py` <br/>
+`python update_neighbor_genes_ndf.py` <br/>
 *(Seriously!,That's just it)*
 <br/>
 
@@ -99,19 +99,23 @@ Download the model from [here](https://drive.google.com/open?id=1_TmsH8uLrKAmZKb
 It asks for a gene id and a second gene id and predicts the homology type.<br/>
 
 ## SUMMARY:
-I know you are probably thinking (and angry,bored,frustrated) "*Why did I have to read this long guide when I could have directly come here*" or you have directly scrolled to this(as you were checking how long the page is, *we all have been there*), So congratulations!! you have come to the right point.<br/>
+If you have directly scrolled to this part(as you were checking how long the page is, *we all have been there*), Congratulations!! you have come to the right part.<br/>
 The simple step by step summaray is:<br/>
-1. Run `ftpg.py` and enter `y` when it asks to download for file. Believe me, you don't want to do it manually there are **199** of them.<br/>
-2. Download the homology databases of your choice and rename them with this format `species_name.tsv.gz`.<br/>
+1. Run `ftpg.py` and enter `y` when it asks to download for file. Believe me, you don't want to do it manually, there are **199** of them.<br/>
+2. Download the homology databases of your choice to the `data_homology` directory and rename them with this format `species_name.tsv.gz`.<br/>
 3. Run `create_genome_maps.py -d data -r` to create genome maps.<br/>
 4. Run `update_neighbor_genes.py -d data_homology -r -run` to create/update the neighboring genes map file.<br/>
 5. Run `prepare_synteny_matrix.py nos` to sample `nos` records from the dataset and create their synteny matrices.<br/>
 6. Run `prepare_other_features.py` to finalize the positive dataset.<br/>
 7. Run `prepare_negative_dataset.py nos random_seed` to sample the negative dataset.<br/>
-8. Run `update_neighbor_genes.py` to update the neighbor genes file.<br/>
+8. Run `update_neighbor_genes_ndf.py` to update the neighbor genes file.<br/>
 9. Run `prepare_synteny_matrix_negative.py` to prepare the synteny matrices.<br/>
 10. Run `prepare_other_features_negative.py` to finalize the negative dataset.<br/>
 
 **To test the model:**<br/>
 Run `test_model.py` with the genome_maps.<br/>
 
+**Some Tips:**<br/>
+1.Don't change the directory names as they might create additional problems in the execution.<br/>
+2.Preparing the dataset might take some time especially the part where synteny matrices are created, so it's better to run multiple concurrent jobs.<br/>
+3.Here is the link to the [genome maps](https://drive.google.com/open?id=1GjV6dT-Hpf2LWQ-vSpekqqQ7RF_tH8So),[neighbor_genes.json](https://drive.google.com/open?id=1dYqs7REkoVa7Llhdb0YbkMYjibVo8SES),[negative dataset](https://drive.google.com/open?id=1BEUspG_QuYeRYpu4BbMJIaFLrw0MES27) with 1 million entries.
