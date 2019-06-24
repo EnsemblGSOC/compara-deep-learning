@@ -5,6 +5,7 @@ import os
 import gc
 import progressbar
 import random
+import pickle
 from read_data import read_data_homology,read_data_genome
 
 arg=sys.argv
@@ -23,9 +24,12 @@ for df in progressbar.progressbar(a_h):
     for h in hgids:
         gmap[h]=1
 
-a=[]
-d={}
-a,d=read_data_genome("data",a,d)
+data={}
+with open("genome_maps","rb") as file:
+    data=pickle.load(file)
+a=data["a"]
+d=data["d"]
+data={}
 assert(len(a)==len(d))
 indexes_gd=[list(df.index.values) for df in a]
 d=list(d.keys())

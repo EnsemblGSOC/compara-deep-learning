@@ -9,7 +9,8 @@ from skbio.alignment import local_pairwise_align_ssw
 from skbio import DNA,TabularMSA,RNA
 
 def update(gene_seq,gene):
-    while(1):
+    t=0
+    while(t!=100):
         try:
             server = "https://rest.ensembl.org"
             ext = "/sequence/id/"+str(gene)+"?type=cds;multiple_sequences=1"
@@ -36,8 +37,10 @@ def update(gene_seq,gene):
                 gene_seq[gene]=str(r["seq"])
                 return
         except Exception as e:
+            t+=1
             print("\nError:",e)
             continue
+    gene_seq[gene]=""
 
 def create_synteny_matrix_mul(gene_seq,g1,g2,n):
     for gene in g1:
@@ -46,7 +49,7 @@ def create_synteny_matrix_mul(gene_seq,g1,g2,n):
         try:
             temp=gene_seq[gene]
         except:
-            print("Updating gene sequences for gene:",gene)
+            #print("Updating gene sequences for gene:",gene)
             update(gene_seq,gene)
     for gene in g2:
         if gene=="NULL_GENE":
@@ -54,7 +57,7 @@ def create_synteny_matrix_mul(gene_seq,g1,g2,n):
         try:
             temp=gene_seq[gene]
         except:
-            print("Updating gene sequences for gene:",gene)
+            #print("Updating gene sequences for gene:",gene)
             update(gene_seq,gene)
     #print(n)
     sm=np.zeros((n,n,2))
@@ -75,7 +78,6 @@ def create_synteny_matrix_mul(gene_seq,g1,g2,n):
                 sml[i][j][0]=result/(norm_len)
                 _,result,_=local_pairwise_align_ssw(DNA(gene_seq[g1[i]]),DNA(gene_seq[g2[j]][::-1]))
                 sml[i][j][1]=result/(norm_len)
-
             except:
                 return np.zeros((n,n,2)),np.zeros((n,n,2))
     return sm,sml

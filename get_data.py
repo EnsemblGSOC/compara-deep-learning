@@ -36,21 +36,21 @@ def get_data_genome(arg,dir):
 def get_data_homology(arg,dir):
     a_h=[]
     d_h={}
-    if arg[2]=="-l":
+    if arg[0]=="-l":
         if not os.path.exists(dir):
             os.mkdir(dir)
-        download_data(arg[3],dir)
-    elif arg[2]=="-f":
-        get_data_file(arg[3],dir)
-    elif arg[2]=="-d":
-        if arg[4]=="-r":
+        download_data(arg[1],dir)
+    elif arg[0]=="-f":
+        get_data_file(arg[1],dir)
+    elif arg[0]=="-d":
+        if arg[2]=="-r":
             c=0
         else:
             return a_h,d_h
     elif arg[2]=="-nd":
         return a_h,d_h
 
-    if arg[4]=="-r":
+    if arg[2]=="-r":
         a_h,d_h=read_data_homology(dir)
         assert(len(a_h)==len(d_h))
 

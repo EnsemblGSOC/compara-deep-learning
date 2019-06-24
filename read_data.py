@@ -35,8 +35,9 @@ def read_data_genome(dir_name,a,dict_ind_genome):
                 data_gene[y]=data_gene[y].apply(clear_data)
         except:
             continue
-        #print(data_gene[0:10])
-        data_gene=data_gene[data_gene['gene_biotype']=='protein_coding']
+        #print(data_gene[0:10])        
+        data_gene=data_gene[(data_gene['gene_biotype']=='protein_coding') | (data_gene['gene_source']=='protein_coding')]
+        #print(data_gene[data_gene["gene_id"]=="ENSPMGG00000022088"])
         a.append(data_gene)
         n=lf[x].split(".")[0]
         dict_ind_genome[n]=len(a)-1
