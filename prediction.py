@@ -53,7 +53,6 @@ with open("gs","wb")as file:
 with open("gs","rb") as file:
     gene_sequences=pickle.load(file)"""
 
-df=df[0:20]
 n=3
 smg,sml,indexes=synteny_matrix(gene_sequences,df,lsy,n,0,list(),list(),list())
 print(len(indexes))
