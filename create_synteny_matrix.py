@@ -10,7 +10,7 @@ from skbio import DNA,TabularMSA,RNA
 
 def update(gene_seq,gene):
     t=0
-    while(t!=100):
+    while(t!=10):
         try:
             server = "https://rest.ensembl.org"
             ext = "/sequence/id/"+str(gene)+"?type=cds;multiple_sequences=1"
@@ -38,7 +38,7 @@ def update(gene_seq,gene):
                 return
         except Exception as e:
             t+=1
-            print("\nError:",e)
+            #print("\nError:",e)
             continue
     gene_seq[gene]=""
 
