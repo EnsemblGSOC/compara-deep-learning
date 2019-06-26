@@ -9,7 +9,10 @@ from test_prepare_functions import create_data_homology_ls,read_gene_sequences,s
 from access_data_rest import update_rest
 from process_data import create_map_list
 
-df=pd.read_csv("input_real_predictions_random_20K.txt",sep="\t",header=None)
+arg=sys.argv
+fname=arg[-1]
+
+df=pd.read_csv(fname+".txt",sep="\t",header=None)
 label_dict=dict(ortholog_one2one="Orthologs",
                 other_paralog="Paralogs",
                 ortholog_one2many="Orthologs",
