@@ -3,8 +3,11 @@ import pandas as pd
 import gzip
 import sys
 import progressbar
+import traceback
 
 def clear_data(x):
+    if x==None:
+        return x
     x=x.split()
     try:
         x=x[1]
@@ -33,11 +36,13 @@ def read_data_genome(dir_name,a,dict_ind_genome):
         try:
             for y in ["gene_version","gene_name","gene_source","gene_biotype","gene_id"]:
                 data_gene[y]=data_gene[y].apply(clear_data)
-        except:
+        except Exception as e:
+            traceback.print_exc()
+            print(e)
             continue
         #print(data_gene[0:10])        
         data_gene=data_gene[(data_gene['gene_biotype']=='protein_coding') | (data_gene['gene_source']=='protein_coding')]
-        #print(data_gene[data_gene["gene_id"]=="ENSPMGG00000022088"])
+        #print(data_gene[data_gene["gene_id"]=="ENSNGAG00000000407"])
         a.append(data_gene)
         n=lf[x].split(".")[0]
         dict_ind_genome[n]=len(a)-1
