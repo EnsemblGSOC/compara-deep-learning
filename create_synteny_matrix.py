@@ -65,9 +65,13 @@ def create_synteny_matrix_mul(gene_seq,g1,g2,n):
     for i in range(n):
         if g1[i]=="NULL_GENE":
             continue
+        if  gene_seq[g1[i]]=="":
+            return np.zeros((n,n,2)),np.zeros((n,n,2))
         for j in range(n):
             if g2[j]=="NULL_GENE":
                 continue
+            if  gene_seq[g2[j]]=="":
+                return np.zeros((n,n,2)),np.zeros((n,n,2))
             norm_len=max(len(gene_seq[g1[i]]),len(gene_seq[g2[j]]))
             try:
                 result = ed.align(gene_seq[g1[i]],gene_seq[g2[j]], mode="NW", task="distance")

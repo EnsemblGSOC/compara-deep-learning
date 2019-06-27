@@ -2,7 +2,8 @@ import pandas as pd
 import progressbar
 import json
 import numpy as np 
-import multiprocessing
+import time
+from multiprocessing import Process 
 from threading import Thread
 from ete3 import Tree
 from read_get_gene_seq import read_gene_seq,create_dict
@@ -114,7 +115,6 @@ def intermediate_process(gene_seq,x,y,n,index,sl,sg,ind):
     sl.append(smltemp)
     ind.append(index)
 
-
 def synteny_matrix(gene_seq,hdf,lsy,n,enable_break,sg,sl,ind):
     #sg=[]
     #sl=[]
@@ -160,8 +160,9 @@ def synteny_matrix(gene_seq,hdf,lsy,n,enable_break,sg,sl,ind):
             th.start()
             th.join(30)
             if th.is_alive():
-                th.join()
+                raise SystemError("Long Time")
                 print(row)
+                th.join()
         except Exception as e:
             print(e)
         if t==5 and enable_break==1:
