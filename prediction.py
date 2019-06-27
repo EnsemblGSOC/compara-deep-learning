@@ -106,7 +106,7 @@ with open("prediction.txt","w") as file:
         file.write("\t")
         file.write(row[1])
         file.write("\t")
-        file.write(row[2])
+        file.write(row[3])
         file.write("\t")
         file.write(str(row["label"]))
         file.write("\t")
