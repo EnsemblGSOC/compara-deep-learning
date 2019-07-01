@@ -34,7 +34,7 @@ Note: Genome Maps can be downloaded from this [link](https://drive.google.com/op
 
 **Create/Update Neighbor Genes File:**<br/>
 This project uses the measure of conserved synteny to predict the homology type. Therefore, to predict the homology type we need to find the neighboring genes of the given homologous pair of genes. <br/>
-This file finds the neighboring genes of all the rows in the given databases and writes it to a file called `processed/neighbor_genes.json` .<br/>
+This step finds the neighboring genes of all the rows in the given homology databases and writes it to a file called `processed/neighbor_genes.json` .<br/>
 To find the neighboring genes of the homologous genes in the databases run this command:<br/>
 `python update_neighbor_genes.py -d path -r -test` to test the file for 5 samples or you can directly run:<br/>
 `python update_neighbor_genes.py -d path -r -run`. <br/>
