@@ -8,6 +8,7 @@ from tree_data import create_tree_data
 
 a_h,d_h=read_data_homology("data_homology")
 d_h=list(d_h.keys())
+d_h=[x.split()[0] for x in d_h]
 print("Data Read")
 smg_name="_synteny_matrices_global.npy"
 sml_name="_synteny_matrices_local.npy"

@@ -4,10 +4,12 @@ import os
 import sys
 import progressbar
 import json
+import gc
 from read_data import read_data_homology
 from read_get_gene_seq import read_gene_sequences
 from create_synteny_matrix import synteny_matrix
 from access_data_rest import update_rest
+from select import select,create_map_reverse
 
 if not os.path.isdir("processed/synteny_matrices"):
     os.mkdir("processed/synteny_matrices")
@@ -17,19 +19,26 @@ arg=arg[1:]
 
 nos=int(arg[0])
 
+with open("dist_matrix","r") as file:
+    matrix=file.readlines()
+matrix=[x.split("\t") for x in matrix]
+matrix=[[float(y) for y in x] for x in matrix]
+matrix=np.array(matrix)
+with open("sp_names","r") as file:
+    dname=file.readlines()
+dname=[x.split("\n")[0] for x in dname]
+spnmap,nspmap=create_map_reverse(dname)
+
 lsy={}
 a_h,d_h=read_data_homology("data_homology")
 print(d_h)
 d_h=list(d_h.keys())
+d_h=[x.split()[0] for x in d_h]
 print("Homology Data Read")
 for i in range(len(a_h)):
-    df=a_h[i]
-    random_indexes=np.random.permutation(len(df))
-    random_indexes=random_indexes[:nos]
-    df=df.loc[random_indexes]
-    assert(len(df)==nos)
-    a_h[i]=df
-
+    a_h[i]=select(a_h[i],nos,matrix,spnmap,nspmap,d_h[i])
+    assert(len(a_h[i])==nos)
+gc.collect()
 print("Data Selected")
 
 with open("processed/neighbor_genes.json","r") as file:
@@ -37,7 +46,7 @@ with open("processed/neighbor_genes.json","r") as file:
 print(len(lsy))
 print("Neighbor Genes Loaded")
 
-
+gene_sequences={}
 gene_sequences=read_gene_sequences(a_h,lsy,"geneseq","gene_sequences")
 print("Gene Sequences Loaded")
 

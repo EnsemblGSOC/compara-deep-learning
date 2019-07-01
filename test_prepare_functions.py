@@ -149,13 +149,13 @@ def synteny_matrix(gene_seq,hdf,lsy,n,enable_break,sg,sl,ind):
         
         assert(len(x)==len(y))
         assert(len(x)==(2*n+1))
-        """smgtemp,smltemp=create_synteny_matrix_mul(gene_seq,x,y,2*n+1)
+        smgtemp,smltemp=create_synteny_matrix_mul(gene_seq,x,y,2*n+1)
         if np.all(smgtemp==0):
             continue
         sg.append(smgtemp)
         sl.append(smltemp)
-        ind.append(index)"""
-        try:
+        ind.append(index)
+        """try:
             th=Thread(target=intermediate_process,name="TimeOutDetector",args=(gene_seq,x,y,2*n+1,index,sl,sg,ind,))
             th.start()
             th.join(30)
@@ -164,7 +164,7 @@ def synteny_matrix(gene_seq,hdf,lsy,n,enable_break,sg,sl,ind):
                 print(row)
                 th.join()
         except Exception as e:
-            print(e)
+            print(e)"""
         if t==5 and enable_break==1:
             break
     #print("Time Taken:",end-start)
