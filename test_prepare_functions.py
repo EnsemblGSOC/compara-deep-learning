@@ -3,12 +3,13 @@ import progressbar
 import json
 import numpy as np 
 import time
-from multiprocessing import Process 
-from threading import Thread
+import pickle
 from ete3 import Tree
 from read_get_gene_seq import read_gene_seq,create_dict
 from process_data import get_nearest_neighbors
-from create_synteny_matrix import create_synteny_matrix_mul
+from create_synteny_matrix import create_synteny_matrix_mul,update
+import requests
+import json
 
 def create_data_homology_ls(df,n,a,d,ld,ldg,cmap,cimap):
     buf=open("not_found.txt","w")
@@ -54,7 +55,7 @@ def group_seq_by_species(df,g_to_sp):
     create_dict(ghsp,sph,g_to_sp)
     return g_to_sp
 
-def read_gene_sequences(df,lsy,data_dir,fname):
+def read_gene_sequences(df,lsy,data_dir,fname,name):
 
     """The basic idea here is to create a list/dictionary of all the genes by their species.
        Once the mapping is done, all the respective fasta sequence files are read by Species
@@ -101,10 +102,8 @@ def read_gene_sequences(df,lsy,data_dir,fname):
             except:
                 not_found[gene]=1
 
-    with open("processed/not_found.json","w") as file:
+    with open("processed/not_found_"+name+"_.json","w") as file:
         json.dump(not_found,file)
-    with open("processed/"+fname+".json","w") as file:#save the data
-        json.dump(data,file)
     return data
 
 def intermediate_process(gene_seq,x,y,n,index,sl,sg,ind):
@@ -114,63 +113,6 @@ def intermediate_process(gene_seq,x,y,n,index,sl,sg,ind):
     sg.append(smgtemp)
     sl.append(smltemp)
     ind.append(index)
-
-def synteny_matrix(gene_seq,hdf,lsy,n,enable_break,sg,sl,ind):
-    #sg=[]
-    #sl=[]
-    t=0
-    #ind=[]
-    
-    for index,row in progressbar.progressbar(hdf.iterrows()):
-        g1=str(row[1])
-        g2=str(row[3])
-        x=[]
-        y=[]
-        t+=1
-        try:
-            temp=lsy[g1]
-        except:
-            continue
-        try:
-            temp=lsy[g2]
-        except:
-            continue
-        for i in range(len(lsy[g1]['b'])-1,-1,-1):
-            x.append(lsy[g1]['b'][i])
-        x.append(g1)
-        for k in lsy[g1]['f']:
-            x.append(k)
-
-        for i in range(len(lsy[g2]['b'])-1,-1,-1):
-            y.append(lsy[g2]['b'][i])
-        y.append(g2)
-        for k in lsy[g2]['f']:
-            y.append(k)
-        
-        assert(len(x)==len(y))
-        assert(len(x)==(2*n+1))
-        smgtemp,smltemp=create_synteny_matrix_mul(gene_seq,x,y,2*n+1)
-        if np.all(smgtemp==0):
-            continue
-        sg.append(smgtemp)
-        sl.append(smltemp)
-        ind.append(index)
-        """try:
-            th=Thread(target=intermediate_process,name="TimeOutDetector",args=(gene_seq,x,y,2*n+1,index,sl,sg,ind,))
-            th.start()
-            th.join(30)
-            if th.is_alive():
-                raise SystemError("Long Time")
-                print(row)
-                th.join()
-        except Exception as e:
-            print(e)"""
-        if t==5 and enable_break==1:
-            break
-    #print("Time Taken:",end-start)
-    #print("Average Time:",(end-start)/len(sg))
-    print(t)
-    return np.array(sg),np.array(sl),np.array(ind)
 
 
 def create_branch_length_padding(bl):
@@ -215,3 +157,61 @@ def create_tree_data(treename,df):
     create_branch_length_padding(branch_lengths_s)
     create_branch_length_padding(branch_lengths_hs)
     return np.array(branch_lengths_s),np.array(branch_lengths_hs),np.array(dist),np.array(ns),np.array(nhs)
+
+def read_data(nop,name):
+    smg=[]
+    sml=[]
+    indexes=[]
+    for i in range(nop):
+        try:
+            with open("temp_"+name+"/thread_"+str(i+1)+"_smg.temp","rb") as file:
+                smg=smg+pickle.load(file)
+            with open("temp_"+name+"/thread_"+str(i+1)+"_sml.temp","rb") as file:
+                sml=sml+pickle.load(file)
+            with open("temp_"+name+"/thread_"+str(i+1)+"_indexes.temp","rb") as file:
+                indexes=indexes+pickle.load(file)
+        except:
+            continue
+    print(len(indexes))
+    return smg,sml,indexes
+
+def update_rest(data,name):
+    gids={}
+    with open("processed/not_found_"+name+"_.json","r") as file:
+        gids=dict(json.load(file))
+
+    gids=list(gids.keys())
+
+    geneseq={}
+
+    server = "https://rest.ensembl.org"
+    ext = "/sequence/id?type=cds"
+    headers={ "Content-Type" : "application/json", "Accept" : "application/json"}
+
+    for i in progressbar.progressbar(range(0,len(gids)-50,50)):
+        ids=dict(ids=list(gids[i:i+50]))
+        while(1):
+            try:
+                r = requests.post(server+ext, headers=headers, data=str(json.dumps(ids)))
+                if not r.ok:
+                    r.raise_for_status()
+                gs=r.json()
+                tgs={}
+                for g in gs:
+                    tgs[g["query"]]=g["seq"]
+                geneseq.update(tgs)
+                break
+            except Exception as e:
+                print("Error:",e)
+                continue
+
+    data.update(geneseq)
+    for genes in gids:
+        try:
+            _=data[genes]
+        except:
+            print(genes)
+            update(data,genes)
+
+    print("Gene Sequences Updated Successfully")
+    return data
