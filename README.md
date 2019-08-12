@@ -70,4 +70,4 @@ IF YOU DID EVERYTHING RIGHT YOU SHOULD SEE A FILE NAMED `dataset` IN THE SAME DI
 ## Train the Model:
 This is where it gets interesting. You are gonna train your own model architecture or you can use the one given in the `model.py` script. You can directly change the model as well in the `model.py`.<br/>
 To train the model, run:<br/>
-`python train.py negative_start_composition negative_end_composition epochs learning_rate learning_rate_decay no_of_samples batch_size`<br/>
+`python train.py model_name negative_start_composition negative_end_composition epochs learning_rate learning_rate_decay no_of_samples batch_size`<br/>
