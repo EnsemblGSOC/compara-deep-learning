@@ -8,7 +8,18 @@ from select_data import read_db_homology
 from threads import Procerssrunner
 from read_get_gene_seq import read_gene_sequences
 from access_data_rest import update_rest,update_rest_protein
-from process_negative import write_fasta
+from Bio import SeqIO
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
+from Bio.Alphabet import IUPAC
+
+def write_fasta(sequences,name):
+    with open(name+".fa","w") as file:
+        for seq in sequences:
+            if sequences[seq]=="":
+                continue
+            record=SeqRecord(Seq(sequences[seq],IUPAC.protein),id=seq)
+            SeqIO.write(record,file,"fasta")
 
 def read_data_synteny(nop,name):
     smg=[]
