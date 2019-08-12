@@ -47,5 +47,22 @@ Negative samples are a non-homologous pair of genes. You can get the negative sa
 Process the negative set by using:<br/>
 `python process_negative.py negative_database_file_name number_of_threads`<br\>
 
+**Run the HMMER scan on the Protein Sequences:**<br/>
+The idea is that homologous genes will have overlapping domains. Run the hmmer scan on the `protein_seq_positve.fa` and `pro_seq_negative.fa` with the `-domtblout` option.
 
+**Parse the PFAm domain files:**<br/>
+This file will parse the hmmer scan database. You will have to parse both the positive samples and the negative sample database.<br/>
+To parse, run:<br/>
+`python pfam_parser.py domtblout_file_name_positive domtblout_file_name_negative`.
 
+**Create PFAM matrices:**<br/>
+This step will create the pfam matrices. This might take some time...<br/>
+Run:<br/>
+`python pfam_matrix.py name_of_negative_database_you_earlier_processed`<br/>
+
+**Finalize the Dataset:**<br/>
+This step combines everything and finalizes the dataset by reading the processed factors and extracting some basic features from the species tree. 
+Run:<br/>
+`python finalize_dataset.py name_of_negative_database_you_earlier_processed`<br/>
+
+IF YOU DID EVERYTHING RIGHT YOU SHOULD SEE A FILE NAMED `dataset` IN THE SAME DIRECTORY.<br/>
