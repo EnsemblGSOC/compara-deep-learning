@@ -34,7 +34,7 @@ To select the data run:<br/>
 **Find the Neighbor Genees of the Selected Records:**<br/>
 This step will find the neighbor genes of all the selected records from the homology databases and write it to the `processed` directory.<br/>
 Run:<br/>
-`python neighbor_gene.py`<br/>
+`python neighbor_genes.py`<br/>
 
 **Create Synteny Matrix and Write Protein Sequences:**<br/>
 This step will create the synteny matrices and write the protein sequences on a `FAST-A` file named `protein_seq_positive.fa`.You will have to run the `hmmer-scan` on this file to get the `PFAm` domains.<br/>
