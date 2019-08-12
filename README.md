@@ -89,8 +89,9 @@ Run:<br/>
 
 **Now you have all the resources required to Make predictions on the required file.**<br/>
 Copy the file you want to make predictions on from the directory that you created earlier to the code directory and Run:<br/>
-`python prediction_pfam.py file_name_with_extension model_name number_of_threads start end name domtblout_file_name`.<br/>
+`python prediction_pfam.py file_name_with_extension model_name no_of_models number_of_threads start end name domtblout_file_name weights`.<br/>
 where:<br/>
 `start end`:the locations from which you want to make predictions in the file.<br/>
 `name`:Since you can run multiple predcitions at the same time this serves as a unique identifier for the temporary files being created.<br/>
 `domtblout_file_name`:It is the name of the file that you get after running the hmmer scan on the fast-a files.<br/>
+`weights`:`e` if you want to give equal weight to all the models, `w` followed by the same number of float literals as number of models parameter to assign specific weights. 
