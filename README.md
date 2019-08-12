@@ -71,3 +71,26 @@ IF YOU DID EVERYTHING RIGHT YOU SHOULD SEE A FILE NAMED `dataset` IN THE SAME DI
 This is where it gets interesting. You are gonna train your own model architecture or you can use the one given in the `model.py` script. You can directly change the model as well in the `model.py`.<br/>
 To train the model, run:<br/>
 `python train.py model_name negative_start_composition negative_end_composition epochs learning_rate learning_rate_decay no_of_samples batch_size`<br/>
+
+## Predictions:
+To make predictions you need to have the prediction files in a pre-defined format like this [file](ftp://ftp.ebi.ac.uk/pub/databases/ensembl/mateus/gsoc_2019/balanced_random_mix_ortholog_paralog_negative.txt.gz). All the fields have to tab seperated and in the same order.<br/>
+
+**Get the prediction files:**<br/>
+Create a new directory with any name of your choice in the code directory and paste all the files on which you want to make the predictions inside it.<br/>
+Run:<br/>
+`python pfam_folder_pred.py directory_name`<br/>
+This will read all the files on the directory and write all the protein sequences on a FAST-A file named `prediction_directory_name.fa`.
+Run hmmer scan on that file.<br/>
+
+**Parse the PFAM file**<br/>
+This file parses the PFAM file and creates some maps.<br/>
+Run:<br/>
+`python pfam_db_parser.py domtblout_file_name`<br/>
+
+**Now you have all the resources required to Make predictions on the required file.**<br/>
+Copy the file you want to make predictions on from the directory that you created earlier to the code directory and Run:<br/>
+`python prediction_pfam.py file_name_with_extension model_name number_of_threads start end name domtblout_file_name`.<br/>
+where:<br/>
+`start end`:the locations from which you want to make predictions in the file.<br/>
+`name`:Since you can run multiple predcitions at the same time this serves as a unique identifier for the temporary files being created.<br/>
+`domtblout_file_name`:It is the name of the file that you get after running the hmmer scan on the fast-a files.<br/>
