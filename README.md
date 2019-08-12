@@ -9,7 +9,7 @@ This file provides the instructions to replicate the results of this project fro
 3. A native/virtual python environment. Install the dependencies from `requirements.txt` using :<br/>
  `pip install -r requirements.txt`<br/>
  
-## Step 1: Data Preparation:
+## Data Preparation:
 The model uses a synteny matrix and some other factors derived from the species tree to make predictions. <br/>
 **Download The Required Files:**
 So as to prepare data we will need the following files:<br/>
@@ -66,3 +66,8 @@ Run:<br/>
 `python finalize_dataset.py name_of_negative_database_you_earlier_processed`<br/>
 
 IF YOU DID EVERYTHING RIGHT YOU SHOULD SEE A FILE NAMED `dataset` IN THE SAME DIRECTORY.<br/>
+
+## Train the Model:
+This is where it gets interesting. You are gonna train your own model architecture or you can use the one given in the `model.py` script. You can directly change the model as well in the `model.py`.<br/>
+To train the model, run:<br/>
+`python train.py negative_start_composition negative_end_composition epochs learning_rate learning_rate_decay no_of_samples batch_size`<br/>
