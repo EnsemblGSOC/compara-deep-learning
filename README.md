@@ -1,7 +1,4 @@
-# New Readme
-
-The aim of this project is to use **Deep Neural-Nets** to predict homology type between the give pair of genes. 
-This file provides the instructions to replicate the results of this project from scratch.
+The aim of this project is to use **Deep Neural-Nets** to predict homology type between a given pair of genes. 
 
 ## Requirements:
 1. A machine with atleast **8GB of RAM** (although **16-32GB** is recommended. It depends on the no. of homology databases that you are willing to use in the preparation of the dataset), a graphic card for training the deep neural nets. A single GPU machine would suffice. The model can be trained on CPU as well but will be a lot faster if trained on a GPU.<br/>
