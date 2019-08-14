@@ -115,11 +115,9 @@ def write_preds(fname,model_name,name,preds,index_dict,df):
     print("Writing predcitions to:","prediction_"+fname+"_"+model_name+"_"+name+"_multiple_pfam.txt")
     with open("prediction_"+fname+"_"+model_name+"_"+name+"_multiple_pfam.txt","w") as file:
         for index,row in progressbar.progressbar(df.iterrows()):
-            file.write(str(row[0]))
+            file.write(row["gene_stable_id"])
             file.write("\t")
-            file.write(row[1])
-            file.write("\t")
-            file.write(row[3])
+            file.write(row["homology_gene_stable_id"])
             file.write("\t")
             file.write(str(row["label"]))
             file.write("\t")
