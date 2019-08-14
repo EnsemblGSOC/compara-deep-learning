@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 import sys
-from selector import select, create_map_reverse
+from selector_sp import select, create_map_reverse
 
 
 def read_db_homology(dir_name, filename):
