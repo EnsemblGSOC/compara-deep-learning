@@ -76,10 +76,8 @@ with open("gtf_link.txt","w") as file:
         file.write(base_link+x)
         file.write("\n")
 
-ch=input("Do you want to download the data?[y/n]")
-if ch=='y':
-    print("Downloading Data.................")
-    get_data_file("gtf_link.txt","data")
-    get_data_file("seq_link.txt","geneseq")
-    get_data_file("protein_seq.txt","pro_seq")
-    print("Download Complete.................")
+print("Downloading Data")
+get_data_file("gtf_link.txt","data")
+get_data_file("seq_link.txt","geneseq")
+get_data_file("protein_seq.txt","pro_seq")
+print("Download Complete.................")
