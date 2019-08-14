@@ -12,10 +12,19 @@ The model uses a synteny matrix and some other factors derived from the species 
 So as to prepare data we will need the following files:<br/>
 1.All the `gtf` files to get the start and end locations of the genes and find their neighboring genes. This is used to create the synteny matrix which helps to see the conserved synteny among the genes.<br/>
 2. All the `cds` files in `FAST-A` format. They are required but are not mandatory, if the files are not provided the sequences are directly accessed from the `REST API` but the process can be slow :( . It's better to have all the `cds` files.<br/>
-3. Homology Databases of Your Choice. All the databases have the same name so change the name of the files with their respective speicies names. One format that works best is `species_name.tsv.gz`. **The record selector gets the name of the species from the file name so this is mandatory.**<br/>
-4. All the `pep` files in `FAST-A` format. They are required to get the protein sequences to run the pfam scan on.<br/>
+3. All the `pep` files in `FAST-A` format. They are required to get the protein sequences to run the pfam scan on.<br/>
 
 To download the `gtf`, `cds`and `pep` files `ftpg.py` can be used. This scripts writes the links of all the required `gtf` and `cds` files to `gtf-link.txt` and `seq_link.txt`. You can use your own script to download the files or just enter `y` when prompted for permission to download the files. It will automatically download all the files and store them in designated folder. You can manually download each files by pasting link from the files in the browser.<br/>
+
+**Homology Databases:**<br/>
+Additionally, you will need to download the homologies of your choice.
+They can be found at: ftp://ftp.ensembl.org/pub/current_tsv/ensembl-compara/homologies/<br/>
+
+e.g.: ftp://ftp.ensembl.org/pub/current_tsv/ensembl-compara/homologies/homo_sapiens/Compara.97.protein_default.homologies.tsv.gz
+
+All the databases have the same name so you have to rename the files with their respective speicies names.
+From `Compara.97.protein_default.homologies.tsv.gz` to `species_name.tsv.gz`
+All homology files must go into a directory called: `data_homology/`
 
 **Create Genome Maps:**<br/>
 The purpose is to create maps of all the genes present in the `gtf` files with respect to their chromosomes, a map of all the genes belonging to the same chromosome in the given species, a map of all the genes in the given species, a map of all the species whose data has been successfully read.<br/>
