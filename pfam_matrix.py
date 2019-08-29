@@ -130,7 +130,7 @@ def main_negative(arg):
 
 def main():
     arg=sys.argv
-    #main_positive()
+    main_positive()
     main_negative(arg)
 
 if __name__=="__main__":
