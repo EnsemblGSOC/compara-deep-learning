@@ -9,12 +9,26 @@ The aim of this project is to use **Deep Neural-Nets** to predict homology type 
 ## Data Preparation:
 The model uses a synteny matrix and some other factors derived from the species tree to make predictions. <br/>
 **Download The Required Files:**
+
+In order to download all the needed files run: `python ftpg.py`<br/>
+
+It will download the `gtf`, `cds` and `pep` files.
+
+This scripts writes the links of all the required `gtf` and `cds` files to `gtf-link.txt` and `seq_link.txt`. You can use your own script to download the files or just enter `y` when prompted for permission to download the files. It will automatically download all the files and store them in designated folder. You can manually download each files by pasting link from the files in the browser.<br/>
+
 So as to prepare data we will need the following files:<br/>
 1.All the `gtf` files to get the start and end locations of the genes and find their neighboring genes. This is used to create the synteny matrix which helps to see the conserved synteny among the genes.<br/>
 2. All the `cds` files in `FAST-A` format. They are required but are not mandatory, if the files are not provided the sequences are directly accessed from the `REST API` but the process can be slow :( . It's better to have all the `cds` files.<br/>
 3. All the `pep` files in `FAST-A` format. They are required to get the protein sequences to run the pfam scan on.<br/>
 
-To download the `gtf`, `cds`and `pep` files `ftpg.py` can be used. This scripts writes the links of all the required `gtf` and `cds` files to `gtf-link.txt` and `seq_link.txt`. You can use your own script to download the files or just enter `y` when prompted for permission to download the files. It will automatically download all the files and store them in designated folder. You can manually download each files by pasting link from the files in the browser.<br/>
+**Homology Databases:**<br/>
+Additionally, you will need to download the homologies of your choice.
+They can be found at: ftp://ftp.ensembl.org/pub/current_tsv/ensembl-compara/homologies/<br/>
+
+e.g.: ftp://ftp.ensembl.org/pub/current_tsv/ensembl-compara/homologies/homo_sapiens/Compara.97.protein_default.homologies.tsv.gz
+
+All the databases have the same name so you have to rename the files with their respective speicies names.
+From `Compara.97.protein_default.homologies.tsv.gz` to `species_name.tsv.gz`
 
 **Homology Databases:**<br/>
 Additionally, you will need to download the homologies of your choice.
@@ -30,14 +44,14 @@ All homology files must go into a directory called: `data_homology/`
 The purpose is to create maps of all the genes present in the `gtf` files with respect to their chromosomes, a map of all the genes belonging to the same chromosome in the given species, a map of all the genes in the given species, a map of all the species whose data has been successfully read.<br/>
 To create genome maps run this command:<br/>
 `python create_genome_maps.py`:<br/>
-Note: Genome Maps can be downloaded from this [link](https://drive.google.com/open?id=1GjV6dT-Hpf2LWQ-vSpekqqQ7RF_tH8So).<br/>
+Note: A precomputed Genome Maps can be downloaded from this [link](https://drive.google.com/open?id=1GjV6dT-Hpf2LWQ-vSpekqqQ7RF_tH8So).<br/>
 
 **Select the Records from each homology database:**<br/>
 This step will select the specified no. of records from each of the homology databases on the basis of distant species,GOC score,homology type etc.<br/>
 To select the data run:<br/>
 `python select_data.py number_of_records_to_be_selected_from_each_file`.<br/>
 
-**Find the Neighbor Genees of the Selected Records:**<br/>
+**Find the Neighbor Genes of the Selected Records:**<br/>
 This step will find the neighbor genes of all the selected records from the homology databases and write it to the `processed` directory.<br/>
 Run:<br/>
 `python neighbor_genes.py`<br/>
@@ -64,7 +78,7 @@ To parse, run:<br/>
 **Create PFAM matrices:**<br/>
 This step will create the pfam matrices. This might take some time...<br/>
 Run:<br/>
-`python pfam_matrix.py name_of_negative_database_you_earlier_processed`<br/>
+`python pfam_matrix.py negative_samples_50K.txt`<br/>
 
 **Finalize the Dataset:**<br/>
 This step combines everything and finalizes the dataset by reading the processed factors and extracting some basic features from the species tree. 
