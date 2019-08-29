@@ -59,7 +59,7 @@ The idea is that homologous genes will have overlapping domains. Run the hmmer s
 **Parse the PFAm domain files:**<br/>
 This file will parse the hmmer scan database. You will have to parse both the positive samples and the negative sample database.<br/>
 To parse, run:<br/>
-`python pfam_parser.py domtblout_file_name_positive domtblout_file_name_negative`.
+`python pfam_parser.py domtblout_file_name_positive domtblout_file_name_negative`
 
 **Create PFAM matrices:**<br/>
 This step will create the pfam matrices. This might take some time...<br/>
