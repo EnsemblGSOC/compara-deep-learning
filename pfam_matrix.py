@@ -113,7 +113,7 @@ def read_data_negative(arg):
     df=df.loc[ind]
     pfam_db=pd.read_hdf("pfam_db_negative.h5")
     pfam_map=create_pfam_map(pfam_db)
-    with open("processed/neighbor_genes_"+name+".json","r") as file:
+    with open("processed/neighbor_genes_negative.json","r") as file:
         lsy=dict(json.load(file))
     return df,pfam_db,pfam_map,lsy,name
 
