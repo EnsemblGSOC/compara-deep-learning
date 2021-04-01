@@ -70,14 +70,14 @@ def get_prediction(smg,sml,pfam_matrices,indexes,bls,blhs,dis,dps,dphs,model_nam
     pfam_matrices=pfam_matrices.reshape((len(smg),7,7,1))
     for i in range(1,no_of_model+1):
         try:
-            model=tf.train.import_meta_graph(model_name+'_v'+str(i)+'/model.ckpt.meta')
+            model=tf.compat.v1.train.import_meta_graph(model_name+'_v'+str(i)+'/model.ckpt.meta')
         except:
             print("Something wrong with the model.")
             continue
-        with tf.Session() as sess:
+        with tf.compat.v1.Session() as sess:
             try:
                 model.restore(sess,model_name+'_v'+str(i)+"/model.ckpt")
-                graph = tf.get_default_graph()
+                graph = tf.compat.v1.get_default_graph()
                 synmgt,synmlt,pfamt,blst,blhst,dpst,dphst,dist,lrt,yt=graph.get_collection("input_nodes")
                 predictions=graph.get_tensor_by_name("Predictions/BiasAdd:0")
                 print("Model Loaded Successfully :)")
@@ -106,7 +106,7 @@ def get_prediction(smg,sml,pfam_matrices,indexes,bls,blhs,dis,dps,dphs,model_nam
             preds_t_2=sess.run([predictions],feed_dict=fd)
             preds_t_2=np.array(preds_t_2)[0]
             preds=preds+w[i-1]*(preds_t_1+preds_t_2)/2
-        tf.reset_default_graph()    
+        tf.compat.v1.reset_default_graph()    
     preds=np.argmax(preds,axis=1)
     print(preds.shape)
     return preds
