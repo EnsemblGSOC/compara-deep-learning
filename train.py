@@ -22,8 +22,8 @@ def train(train_synteny_matrices_global,train_synteny_matrices_local,train_pfam_
     graph,saver=create_model()
     synmg,synml,pfam,bls,blhs,dps,dphs,dis,lr,y=graph.get_collection("input_nodes")
     loss,t_op,accuracy,init,summary=graph.get_collection("output_nodes")
-    with tf.Session(graph=graph) as sess:
-        writer = tf.summary.FileWriter('./'+model_name+'_v'+str(v), sess.graph)
+    with tf.compat.v1.Session(graph=graph) as sess:
+        writer = tf.compat.v1.summary.FileWriter('./'+model_name+'_v'+str(v), sess.graph)
         sess.run(init)
         learn=learning_rate
         for j in range(num_epochs):
