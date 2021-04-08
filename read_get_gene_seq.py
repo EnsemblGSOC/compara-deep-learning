@@ -27,7 +27,8 @@ def create_dict(keys, values, dictionary):
     return dictionary
 
 # this function maps all the genes to their respective species.
-# (Function: when finding the species of any gene we do not need to search the entire dataframe)
+# (Function: when finding the species of any gene
+# we do not need to search the entire dataframe)
 
 
 def group_seq_by_species(df, g_to_sp):
@@ -64,7 +65,9 @@ def read_gene_seq(dirname, s, genes_by_species):
     ftr = []
     for f in lof:
         if f.split(".")[
-                0] in s:  # check whether the species is present in the species to read list. Will skip those species which are not present in the dataframe
+            # check whether the species is present in the species to read list.
+            # Will skip those species which are not present in the dataframe
+                0] in s:
             ftr.append(f)
     data = {}
     for f in progressbar.progressbar(ftr):
@@ -73,17 +76,18 @@ def read_gene_seq(dirname, s, genes_by_species):
             record = SeqIO.parse(file, "fasta")
             for r in record:
                 gid, gbt = description_cleaner(r.description)
-                if str(gid) not in data and str(
-                        gid) in genes_by_species[species] and gbt == "protein_coding":
+                if str(gid) not in data and str(gid) in \
+                   genes_by_species[species] and gbt == "protein_coding":
                     data[gid] = str(r.seq)
     return data
 
 
 def read_gene_sequences(hdf, lsy, data_dir, fname):
-    """The basic idea here is to create a list/dictionary of all the genes by their species.
-       Once the mapping is done, all the respective fasta sequence files are read by Species
-       and the CDNA sequences for each gene in the species record are read and stored.
-       Thus we don't have to read the same file multiple times."""
+    """The basic idea here is to create a list/dictionary of all the genes by
+    their species. Once the mapping is done, all the respective fasta sequence
+    files are read by Species and the CDNA sequences for each gene in the
+    species record are read and stored.
+    Thus we don't have to read the same file multiple times."""
     grouped_genes = {}
     gene_by_species_dict = {}
     for df in progressbar.progressbar(hdf):

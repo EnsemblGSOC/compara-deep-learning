@@ -52,10 +52,12 @@ class Thread_objects():
                 norm_len = max(len(gene_seq[g1[i]]), len(gene_seq[g2[j]]))
                 try:
                     result = ed.align(
-                        gene_seq[g1[i]], gene_seq[g2[j]], mode="NW", task="distance")
+                        gene_seq[g1[i]], gene_seq[g2[j]],
+                        mode="NW", task="distance")
                     sm[i][j][0] = result["editDistance"] / (norm_len)
                     result = ed.align(
-                        gene_seq[g1[i]], gene_seq[g2[j]][::-1], mode="NW", task="distance")
+                        gene_seq[g1[i]], gene_seq[g2[j]][::-1], mode="NW",
+                        task="distance")
                     sm[i][j][1] = result["editDistance"] / (norm_len)
                     _, result, _ = local_pairwise_align_ssw(
                         DNA(gene_seq[g1[i]]), DNA(gene_seq[g2[j]]))
@@ -120,7 +122,8 @@ class Procerssrunner():
 
     def start_thread(self, obj, i, thread_alive, n, name):
         t = Process(target=obj.synteny_matrix, args=(
-            obj.gene_sequences, obj.df, obj.lsy, n), name="Thread_" + str(i + 1))
+            obj.gene_sequences, obj.df, obj.lsy, n),
+            name="Thread_" + str(i + 1))
         print("Thread ", (i + 1), " started for ", name, ".")
         thread_alive.append(t)
 

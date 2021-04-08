@@ -3,10 +3,10 @@ import progressbar
 from save_data import write_dict_json
 
 
-def create_map_list(l):  # this function maps the indexes to values
+def create_map_list(lister):  # this function maps the indexes to values
     t = {}
-    for i in range(len(l)):
-        t[l[i]] = i
+    for i in range(len(lister)):
+        t[lister[i]] = i
     return t
 
 
@@ -58,10 +58,15 @@ def get_nearest_neighbors(g, gs, n, a, d, ld, ldg, cmap, cimap):
     try:
         _ = ld[gi]  # see if the corresponding gene map exists
     except BaseException:
-        # print("Length of Dataframes:{} \t Length of Loaded Genes:{} \t Length of Loaded Genomes Dictionaries:{}".format(len(a),len(ld),len(ldg)))
+        # print("Length of Dataframes:{}
+        # Length of Loaded Genes:{}
+        # Length of Loaded Genomes Dictionaries:
+        # {}".format(len(a),len(ld),len(ldg)))
         return ne, nr
     sldg = ldg[gi]  # select the corresponding map
-    if g not in sldg:  # if the gene is not present in the dataframe return empty lists
+    # if the gene is not present in the dataframe
+    #  return empty lists
+    if g not in sldg:
         # print(g,"\t",gs)
         return ne, nr
     i = sldg[g]  # find the index of the gene
@@ -80,9 +85,11 @@ def get_nearest_neighbors(g, gs, n, a, d, ld, ldg, cmap, cimap):
         end = list(sldf.end)
         end = np.array(end)
         assert(len(end) == len(sldf))
-        end = end - start  # subtract start from it so as to get relative position
+# subtract start from it so as to get relative position
+        end = end - start
         end_s = np.argsort(end)  # sort them by the order of distance
-        if end[end_s[0]] >= 0:  # if all the genes end ahead of the one in consideration
+# if all the genes end ahead of the one in consideration
+        if end[end_s[0]] >= 0:
             flag = 1  # increment the pointer
             ne.append("NULL_GENE")  # append the NULL_GENE value
             continue
@@ -144,7 +151,8 @@ def create_data_homology_ls(a_h, d_h, n, a, d, ld, ldg, cmap, cimap, to_write):
                     xl, xr = get_nearest_neighbors(
                         x, xs, n, a, d, ld, ldg, cmap, cimap)
                     if len(
-                            xl) != 0:  # check if neighboring genes were successfully found
+                        # check if neighboring genes were successfully found
+                            xl) != 0:
                         lsy[x] = dict(b=xl, f=xr)
                         lsytemp[x] = dict(b=xl, f=xr)
                 except BaseException:

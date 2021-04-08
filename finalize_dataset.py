@@ -60,7 +60,7 @@ def prepare_features(a_h, d_h, sptree, label):
         branch_length_species, \
             branch_length_homology_species, \
             distance, dist_p_s, dist_p_hs = create_tree_data(
-                                            sptree, df)
+                sptree, df)
         assert(len(branch_length_species) == len(df))
         assert(len(sml) == len(distance))
 
