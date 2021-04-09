@@ -130,7 +130,8 @@ def write_preds(fname, model_name, name, preds, index_dict, df):
         "_" +
         name +
         "_multiple.txt")
-    with open("prediction_" + fname + "_" + model_name + "_" + name + "_multiple.txt", "w") as file:
+    with open("prediction_" + fname + "_" + model_name + "_" + name +
+              "_multiple.txt", "w") as file:
         for index, row in progressbar.progressbar(df.iterrows()):
             file.write(str(row[0]))
             file.write("\t")
