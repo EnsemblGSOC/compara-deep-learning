@@ -10,7 +10,7 @@ The aim of this project is to use **Deep Neural-Nets** to predict homology type 
 The model uses a synteny matrix and some other factors derived from the species tree to make predictions. <br/>
 **Download The Required Files:**
 
-In order to download all the needed files run: `python ftpg.py`<br/>
+In order to download all the needed files run: `python download-data/ftpg.py`<br/>
 
 It will download the `gtf`, `cds` and `pep` files.
 
