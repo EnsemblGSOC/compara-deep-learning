@@ -8,4 +8,4 @@ install:
 
 script:
   - flake8
-  - pylint *.py
+  - pylint *.py --exit-zero
