@@ -63,7 +63,8 @@ def read_data_genome(dir_name, a, dict_ind_genome):
             print(e)
             continue
         # print(data_gene[0:10])
-        data_gene = data_gene[(data_gene['gene_biotype'] == 'protein_coding') | (
+        data_gene = data_gene[(
+            data_gene['gene_biotype'] == 'protein_coding') | (
             data_gene['gene_source'] == 'protein_coding')]
         # print(data_gene[data_gene["gene_id"]=="ENSNGAG00000000407"])
         a.append(data_gene)
