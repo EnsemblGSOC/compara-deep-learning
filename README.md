@@ -27,17 +27,9 @@ They can be found at: ftp://ftp.ensembl.org/pub/current_tsv/ensembl-compara/homo
 
 e.g.: ftp://ftp.ensembl.org/pub/current_tsv/ensembl-compara/homologies/homo_sapiens/Compara.97.protein_default.homologies.tsv.gz
 
-All the databases have the same name so you have to rename the files with their respective speicies names.
+All the databases have the same name so you have to rename the files with their respective species names.
 From `Compara.97.protein_default.homologies.tsv.gz` to `species_name.tsv.gz`
 
-**Homology Databases:**<br/>
-Additionally, you will need to download the homologies of your choice.
-They can be found at: ftp://ftp.ensembl.org/pub/current_tsv/ensembl-compara/homologies/<br/>
-
-e.g.: ftp://ftp.ensembl.org/pub/current_tsv/ensembl-compara/homologies/homo_sapiens/Compara.97.protein_default.homologies.tsv.gz
-
-All the databases have the same name so you have to rename the files with their respective speicies names.
-From `Compara.97.protein_default.homologies.tsv.gz` to `species_name.tsv.gz`
 All homology files must go into a directory called: `data_homology/`
 
 **Create Genome Maps:**<br/>
