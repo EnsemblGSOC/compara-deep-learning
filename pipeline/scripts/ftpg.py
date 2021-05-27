@@ -5,6 +5,11 @@ import sys
 import requests
 import numpy as np
 
+print("Working directory:")
+print(os.getcwd())
+print("\n")
+print("Make download_links directory if necessary")
+os.makedirs("download_links", exist_ok=True)
 
 # This wil download all the fasta files for the coding sequences. To change the directory, change the argument in the get_data_file argument.
 host = "ftp.ensembl.org"

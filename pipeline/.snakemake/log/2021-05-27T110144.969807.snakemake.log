@@ -1,0 +1,61 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 4
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	all
+	1	download_files
+	1	get_homology_databases
+	3
+Select jobs to execute...
+
+[Thu May 27 11:01:45 2021]
+rule download_files:
+    input: download_links/gtf_link.txt, download_links/seq_link.txt, download_links/protein_seq.txt
+    output: downloads/gtfs, downloads/cds, downloads/pep
+    jobid: 3
+
+[Thu May 27 11:01:45 2021]
+rule get_homology_databases:
+    input: config/homology_database_list.txt
+    output: homology_databases/homo_sapiens.homologies.tsv.gz
+    jobid: 1
+    wildcards: SPECIES=homo_sapiens
+
+[Thu May 27 11:01:46 2021]
+Error in rule download_files:
+    jobid: 3
+    output: downloads/gtfs, downloads/cds, downloads/pep
+
+RuleException:
+CalledProcessError in line 52 of /mnt/c/Users/aidan/Google Drive/compara-deep-learning/pipeline/Snakefile:
+Command 'set -euo pipefail;  /home/aidan/anaconda3/envs/compara/bin/python3.9 '/mnt/c/Users/aidan/Google Drive/compara-deep-learning/pipeline/.snakemake/scripts/tmpfqz0ruxn.download_prelims.py'' returned non-zero exit status 1.
+  File "/home/aidan/anaconda3/envs/compara/lib/python3.9/site-packages/snakemake/executors/__init__.py", line 2349, in run_wrapper
+  File "/mnt/c/Users/aidan/Google Drive/compara-deep-learning/pipeline/Snakefile", line 52, in __rule_download_files
+  File "/home/aidan/anaconda3/envs/compara/lib/python3.9/site-packages/snakemake/executors/__init__.py", line 569, in _callback
+  File "/home/aidan/anaconda3/envs/compara/lib/python3.9/concurrent/futures/thread.py", line 52, in run
+  File "/home/aidan/anaconda3/envs/compara/lib/python3.9/site-packages/snakemake/executors/__init__.py", line 555, in cached_or_run
+  File "/home/aidan/anaconda3/envs/compara/lib/python3.9/site-packages/snakemake/executors/__init__.py", line 2381, in run_wrapper
+Removing output files of failed job download_files since they might be corrupted:
+downloads/gtfs, downloads/cds, downloads/pep
+Terminating processes on user request, this might take some time.
+[Thu May 27 11:02:10 2021]
+Error in rule get_homology_databases:
+    jobid: 1
+    output: homology_databases/homo_sapiens.homologies.tsv.gz
+    shell:
+        
+		# make the homology database directory
+		mkdir -p homology_databases
+		# This mysterious looking piece of code yanks the ftp path homology database for each species
+		ftp_address=$(lynx -dump -listonly ftp://ftp.ensembl.org/pub/current_tsv/ensembl-compara/homologies/homo_sapiens | grep "protein" | tr -s ' ' | rev | cut -d " " -f 1 | rev)
+		# Use that address to download file with appropriate name
+		wget $ftp_address -o homology_databases/homo_sapiens.homologies.tsv.gz
+		
+		
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Removing output files of failed job get_homology_databases since they might be corrupted:
+homology_databases/homo_sapiens.homologies.tsv.gz
+Complete log: /mnt/c/Users/aidan/Google Drive/compara-deep-learning/pipeline/.snakemake/log/2021-05-27T110144.969807.snakemake.log

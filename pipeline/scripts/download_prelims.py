@@ -24,10 +24,10 @@ def get_data_file(file, dir):
         download_data(x, dir)
 
 
-os.mkdir("/downloads")
-os.mkdir("downloads/gtfs")
-os.mkdir("downloads/cds")
-os.mkdir("downloads/pep")
+os.makedirs("downloads", exist_ok=True)
+os.makedirs("downloads/gtfs", exist_ok=True)
+os.makedirs("downloads/cds", exist_ok=True)
+os.makedirs("downloads/pep", exist_ok=True)
 
 print("Downloading Data")
 get_data_file("./gtfs/gtf_link.txt", "data")
