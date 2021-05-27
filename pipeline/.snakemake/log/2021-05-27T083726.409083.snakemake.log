@@ -1,0 +1,35 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 4
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	all
+	1	download_files
+	1	get_download_links
+	3
+Select jobs to execute...
+
+[Thu May 27 08:37:27 2021]
+rule get_download_links:
+    input: scripts/ftpg.py
+    output: gtf_link.txt, seq_link.txt, protein_seq.txt
+    jobid: 2
+
+[Thu May 27 08:37:29 2021]
+Error in rule get_download_links:
+    jobid: 2
+    output: gtf_link.txt, seq_link.txt, protein_seq.txt
+
+RuleException:
+CalledProcessError in line 21 of /mnt/c/Users/aidan/Google Drive/compara-deep-learning/pipeline/Snakefile:
+Command 'set -euo pipefail;  /home/aidan/anaconda3/envs/compara/bin/python3.9 '/mnt/c/Users/aidan/Google Drive/compara-deep-learning/pipeline/.snakemake/scripts/tmply8c6905.ftpg.py'' returned non-zero exit status 1.
+  File "/home/aidan/anaconda3/envs/compara/lib/python3.9/site-packages/snakemake/executors/__init__.py", line 2349, in run_wrapper
+  File "/mnt/c/Users/aidan/Google Drive/compara-deep-learning/pipeline/Snakefile", line 21, in __rule_get_download_links
+  File "/home/aidan/anaconda3/envs/compara/lib/python3.9/site-packages/snakemake/executors/__init__.py", line 569, in _callback
+  File "/home/aidan/anaconda3/envs/compara/lib/python3.9/concurrent/futures/thread.py", line 52, in run
+  File "/home/aidan/anaconda3/envs/compara/lib/python3.9/site-packages/snakemake/executors/__init__.py", line 555, in cached_or_run
+  File "/home/aidan/anaconda3/envs/compara/lib/python3.9/site-packages/snakemake/executors/__init__.py", line 2381, in run_wrapper
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /mnt/c/Users/aidan/Google Drive/compara-deep-learning/pipeline/.snakemake/log/2021-05-27T083726.409083.snakemake.log

@@ -1,0 +1,7 @@
+downloads/gtfs
+downloads/cds
+downloads/pep
+gtf_link.txt
+seq_link.txt
+protein_seq.txt
+scripts/ftpg.py
