@@ -1,0 +1,14 @@
+rule download_links:
+	"""
+	This rule runs the download links script. 
+	This will get the user all of the possible 
+	download links for the gtf, cds files and fasta files
+	"""
+	input:
+		"./scripts/ftpg.py"
+	output:
+		"gtf_link.txt",
+		"seq_link.txt",
+		"protein_seq.txt"
+	script:
+		"./scripts/ftpg.py"
