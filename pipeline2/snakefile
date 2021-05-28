@@ -1,0 +1,77 @@
+import numpy as np
+
+configfile:
+    "config.json"
+
+
+# get the list of species names for the homology databases
+species = list(np.loadtxt(config["homology_species_list"], dtype="str"))
+
+
+rule all:
+	input:
+		expand( "homology_databases/{SPECIES}.homologies.tsv.gz", SPECIES=species ),
+		"downloads/gtfs",
+		"downloads/cds",
+		"downloads/pep"
+		
+	
+
+
+rule get_download_links:
+	"""
+	This rule runs the download links script. 
+	This will get the user all of the possible 
+	download links for the gtf, cds files and fasta files
+	"""
+	input:
+		"scripts/ftpg.py"
+	output:
+		"download_links/gtf_link.txt",
+		"download_links/seq_link.txt",
+		"download_links/protein_seq.txt"
+	script:
+		"scripts/ftpg.py"
+
+
+rule download_files:
+	"""
+	This rule runs the download links script. 
+	This will get the user all of the possible 
+	download links for the gtf, cds files and fasta files
+	"""
+	input:
+		"download_links/gtf_link.txt",
+		"download_links/seq_link.txt",
+		"download_links/protein_seq.txt"
+	output:
+		"downloads/gtfs",
+		"downloads/cds",
+		"downloads/pep",
+		"logs/gtf_download_log.txt",
+		"logs/pep_download_log.txt",
+		"logs/seq_download_log.txt"
+	shell:
+		"scripts/download_prelims.sh"
+
+
+
+rule get_homology_databases:
+	input:
+		config["homology_species_list"]
+	output:
+		"homology_databases/{SPECIES}.homologies.tsv.gz"
+	params:
+		address=config["homology_database_ftp_address"]
+		
+	
+	shell:
+		"""
+		# make the homology database directory
+		mkdir -p homology_databases
+		# This mysterious looking piece of code yanks the ftp path homology database for each species
+		ftp_address=$(lynx -dump -listonly {params.address}{wildcards.SPECIES} | grep "protein" | tr -s ' ' | rev | cut -d " " -f 1 | rev)
+		# Use that address to download file with appropriate name
+		wget $ftp_address -o {output}
+		
+		"""
