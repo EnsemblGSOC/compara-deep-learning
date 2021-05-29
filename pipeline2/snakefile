@@ -72,6 +72,6 @@ rule get_homology_databases:
 		# This mysterious looking piece of code yanks the ftp path homology database for each species
 		ftp_address=$(lynx -dump -listonly {params.address}{wildcards.SPECIES} | grep "protein" | tr -s ' ' | rev | cut -d " " -f 1 | rev)
 		# Use that address to download file with appropriate name
-		wget $ftp_address -o {output}
+		wget $ftp_address -q -O {output}
 		
 		"""
