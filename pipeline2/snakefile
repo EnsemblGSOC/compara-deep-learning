@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 configfile:
     "config.json"
@@ -33,26 +34,58 @@ rule get_download_links:
 	script:
 		"scripts/ftpg.py"
 
+# read the list of seq links
+seq_links = pd.Series(np.loadtxt("download_links/seq_link.txt", dtype="str"))
+# Get the expected list of seq output files
+seq_files = list("downloads/cds/" + seq_links.str.split("/").str[-1])
 
-rule download_files:
-	"""
-	This rule runs the download links script. 
-	This will get the user all of the possible 
-	download links for the gtf, cds files and fasta files
-	"""
+rule download_cds:
 	input:
-		"download_links/gtf_link.txt",
-		"download_links/seq_link.txt",
+		"download_links/seq_link.txt"
+	output:
+		files = seq_files,
+		out_dir = directory("downloads/cds"),
+		log_path = "logs/seq_download_log.txt"
+	shell:
+		"scripts/downloader.sh {input} {output.out_dir} {output.log_path}"
+
+rule download_gtf:
+	input:
+		"download_links/gtf_link.txt"
+	output:
+		out_dir = directory("downloads/gtfs"),
+		log_path = "logs/gtf_download_log.txt"
+	shell:
+		"scripts/downloader.sh {input} {output.out_dir} {output.log_path}"
+
+rule download_pep:
+	input:
 		"download_links/protein_seq.txt"
 	output:
-		"downloads/gtfs",
-		"downloads/cds",
-		"downloads/pep",
-		"logs/gtf_download_log.txt",
-		"logs/pep_download_log.txt",
-		"logs/seq_download_log.txt"
+		out_dir = directory("downloads/pep"),
+		log_path = "logs/pep_download_log.txt"
 	shell:
-		"scripts/download_prelims.sh"
+		"scripts/downloader.sh {input} {output.out_dir} {output.log_path}"
+
+# rule download_files:
+# 	"""
+# 	This rule runs the download links script. 
+# 	This will get the user all of the possible 
+# 	download links for the gtf, cds files and fasta files
+# 	"""
+# 	input:
+# 		"download_links/gtf_link.txt",
+# 		"download_links/seq_link.txt",
+# 		"download_links/protein_seq.txt"
+# 	output:
+# 		"downloads/gtfs",
+# 		"downloads/cds",
+# 		"downloads/pep",
+# 		"logs/gtf_download_log.txt",
+# 		"logs/pep_download_log.txt",
+# 		"logs/seq_download_log.txt"
+# 	shell:
+# 		"scripts/download_prelims.sh"
 
 
 
@@ -75,3 +108,5 @@ rule get_homology_databases:
 		wget $ftp_address -q -O {output}
 		
 		"""
+
+

@@ -36,7 +36,7 @@ for x in progressbar.progressbar(l):
 print("seq files links obtained.")
 # save the download links to text file with base_link preprended
 ftp_paths = base_link + pd.Series(lt)
-ftp_paths.to_csv("seq_link.txt", index=False, header=False)
+ftp_paths.to_csv("download_links/seq_link.txt", index=False, header=False)
 print("seq_link.txt written")
 
 # find all the files with protein sequences
@@ -53,7 +53,7 @@ for x in progressbar.progressbar(l):
 print("protein files links obtained.")
 # save the protein text file
 ftp_paths = base_link + pd.Series(lt)
-ftp_paths.to_csv("protein_seq.txt", index=False, header=False)
+ftp_paths.to_csv("download_links/protein_seq.txt", index=False, header=False)
 print("protein_seq.txt written")
 
 # get link of all the gtf files
@@ -68,6 +68,6 @@ for x in progressbar.progressbar(l):
 print("gtf files links obtained.")
 # save the gtf link files
 ftp_paths = base_link + pd.Series(lt)
-ftp_paths.to_csv("gtf_link.txt", index=False, header=False)
+ftp_paths.to_csv("download_links/gtf_link.txt", index=False, header=False)
 print("gtf_link.txt written")
 
