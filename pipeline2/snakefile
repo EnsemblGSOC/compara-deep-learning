@@ -113,6 +113,6 @@ rule create_genome_map:
 	input:
 		directory("downloads/gtfs")
 	output:
-		"genome_maps"
+		"/mnt/d/GSoC_compara/genome_maps"
 	script:
-		"scripts/create_genome_map/create_genome_maps.py {input}"
+		"scripts/create_genome_map/create_genome_maps.py {input} {output}"
