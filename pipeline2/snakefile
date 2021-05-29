@@ -109,4 +109,10 @@ rule get_homology_databases:
 		
 		"""
 
-
+rule create_genome_map:
+	input:
+		directory("downloads/gtfs")
+	output:
+		"genome_maps"
+	script:
+		"scripts/create_genome_map/create_genome_maps.py {input}"
