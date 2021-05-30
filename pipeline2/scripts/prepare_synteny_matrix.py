@@ -83,7 +83,7 @@ def main():
     a_h, d_h = read_data_homology("homology_databases")
     print("Data Read")
     lsy = load_neighbor_genes()
-    gene_sequences = read_gene_sequences(a_h, lsy, "geneseq", "gene_seq_positive")
+    gene_sequences = read_gene_sequences(a_h, lsy, "downloads/cds", "gene_seq_positive")
     gene_sequences = update_rest(gene_sequences, "gene_seq_positive")
     print("Gene Sequences Loaded.")
     if not os.path.isdir("processed/synteny_matrices"):
@@ -104,7 +104,9 @@ def main():
         np.save(ndir + str(d_h[i]) + "_" + nf3, indexes)
         a_h[i] = df.loc[indexes]
     print("Synteny Matrices Created Successfully :)")
-    protein_sequences = read_gene_sequences(a_h, lsy, "pro_seq", "pro_seq_positive")
+    protein_sequences = read_gene_sequences(
+        a_h, lsy, "downloads/pep", "pro_seq_positive"
+    )
     protein_sequences = update_rest_protein(protein_sequences, "pro_seq_positive")
     write_fasta(protein_sequences, "protein_seq_positive")
     print("Protein Sequences Loaded.")
