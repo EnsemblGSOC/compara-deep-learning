@@ -14,7 +14,8 @@ rule all:
 		expand( "homology_databases/{SPECIES}.homologies.tsv.gz", SPECIES=species ),
 		"downloads/gtfs",
 		"downloads/cds",
-		"downloads/pep"
+		"downloads/pep",
+		"genome_maps"
 		
 	
 
@@ -49,19 +50,31 @@ rule download_cds:
 	shell:
 		"scripts/downloader.sh {input} {output.out_dir} {output.log_path}"
 
+
+# read the list of gtf links
+gtf_links = pd.Series(np.loadtxt("download_links/gtf_link.txt", dtype="str"))
+# Get the expected list of seq output files
+gtf_files = list("downloads/gtfs/" + gtf_links.str.split("/").str[-1])
 rule download_gtf:
 	input:
 		"download_links/gtf_link.txt"
 	output:
+		files = gtf_files,
 		out_dir = directory("downloads/gtfs"),
 		log_path = "logs/gtf_download_log.txt"
 	shell:
 		"scripts/downloader.sh {input} {output.out_dir} {output.log_path}"
 
+
+# read the list of gtf links
+pep_links = pd.Series(np.loadtxt("download_links/protein_seq.txt", dtype="str"))
+# Get the expected list of seq output files
+pep_files = list("downloads/pep/" + seq_links.str.split("/").str[-1])
 rule download_pep:
 	input:
 		"download_links/protein_seq.txt"
 	output:
+		files = pep_files,
 		out_dir = directory("downloads/pep"),
 		log_path = "logs/pep_download_log.txt"
 	shell:
@@ -111,8 +124,79 @@ rule get_homology_databases:
 
 rule create_genome_map:
 	input:
-		directory("downloads/gtfs")
+		files = gtf_files,
+		in_dir = directory("downloads/gtfs")
 	output:
-		"/mnt/d/GSoC_compara/genome_maps"
+		"genome_maps"
+	shell:
+		"python scripts/create_genome_map/create_genome_maps.py {input.in_dir} {output}"
+
+
+rule select_homology_records:
+	input:
+		"scripts/dist_matrix",
+		directory("homology_databases")
+	output:
+		directory("processed")
+	params:
+		# The number of records to be selected from each file
+		num_records = 2
+	shell:
+		"""
+		python scripts/select_data.py {params.num_records}
+		"""
+rule find_neighbor_genes:
+	input:
+		directory("processed"),
+		direcotry("homology_databases"),
+		"genome_maps"
+	output:
+		"{SPECIES}_selected_indexes.npy"
 	script:
-		"scripts/create_genome_map/create_genome_maps.py {input} {output}"
+		"scripts/neighbor_genes.py"
+		
+	
+rule prep_synteny:
+	input:
+		directory("downloads/pep"),
+		directory("downloads/cds")
+	output:
+		directory("processed/synteny_matrices"),
+		"protein_seq_positve.fa"
+	threads:
+		4
+	shell:
+		"""
+		python scripts/prepare_synteny_matrix.py {threads}
+		"""
+
+rule process_negatives:
+	input:
+		"negative_samples_50K.txt.gz"
+	output:
+		"pro_seq_negative.fa"
+	shell:
+		"""
+		python scripts/process_negative.py {input} number_of_threads
+		"""
+
+rule parse_pfam_domains:
+	input:
+		positive = "pro_seq_positive.fa",
+		negative = "pro_seq_negative.fa"
+	output:
+		"pfam_db_positive.h5",
+		"pfam_db_negative.h5"
+
+	shell:
+		"""
+		python pfam_parser.py {input.positive} {input.positive}
+		"""
+	
+rule pfam_matrix:
+	input:
+		"negative_samples_50K.txt.gz",
+		directory("homology/databases")
+	output:
+		directory("processed/pfam_matrices")
+
