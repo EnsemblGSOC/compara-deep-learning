@@ -18,10 +18,7 @@ def read_data_homology(dirname, nfname):
         df, n = read_db_homology(dirname, x)
         n = n.split()[0]
         try:
-            indexes = np.load(
-                "processed/synteny_matrices/" +
-                n +
-                "_indexes.npy")
+            indexes = np.load("processed/synteny_matrices/" + n + "_indexes.npy")
         except BaseException:
             print("Incomplete data for:", n)
         df = df.loc[indexes]
@@ -30,9 +27,8 @@ def read_data_homology(dirname, nfname):
     # read the negative dataset
     df = read_database_txt(nfname)
     indexes = np.load(
-        "processed/synteny_matrices/" +
-        nfname.split(".")[0] +
-        "_indexes.npy")
+        "processed/synteny_matrices/" + nfname.split(".")[0] + "_indexes.npy"
+    )
     df = df.loc[indexes]
     a_h.append(df)
     d_h.append(nfname.split(".")[0])
@@ -57,12 +53,15 @@ def prepare_features(a_h, d_h, sptree, label):
             continue
         df = df.loc[indexes]
 
-        branch_length_species, \
-            branch_length_homology_species, \
-            distance, dist_p_s, dist_p_hs = create_tree_data(
-                                            sptree, df)
-        assert(len(branch_length_species) == len(df))
-        assert(len(sml) == len(distance))
+        (
+            branch_length_species,
+            branch_length_homology_species,
+            distance,
+            dist_p_s,
+            dist_p_hs,
+        ) = create_tree_data(sptree, df)
+        assert len(branch_length_species) == len(df)
+        assert len(sml) == len(distance)
 
         for i in range(len(df)):
             index = indexes[i]
@@ -88,14 +87,16 @@ def prepare_features(a_h, d_h, sptree, label):
 def main():
     arg = sys.argv
     nfname = arg[-1]
-    a_h, d_h = read_data_homology("data_homology", nfname)
-    labels = dict(ortholog_one2one=1,
-                  other_paralog=0,
-                  non_homolog=2,
-                  ortholog_one2many=1,
-                  ortholog_many2many=1,
-                  within_species_paralog=0,
-                  gene_split=4)
+    a_h, d_h = read_data_homology("homology_databases", nfname)
+    labels = dict(
+        ortholog_one2one=1,
+        other_paralog=0,
+        non_homolog=2,
+        ortholog_one2many=1,
+        ortholog_many2many=1,
+        within_species_paralog=0,
+        gene_split=4,
+    )
     rows = prepare_features(a_h, d_h, "species_tree.tree", labels)
     with open("dataset", "wb") as file:
         pickle.dump(rows, file)

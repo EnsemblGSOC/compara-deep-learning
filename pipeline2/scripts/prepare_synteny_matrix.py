@@ -78,7 +78,7 @@ def read_data_homology(dirname):
 
 def main():
     arg = sys.argv
-    nop = int(arg[-1])
+    nop = abs(int(arg[-1]))
     n = 3
     a_h, d_h = read_data_homology("homology_databases")
     print("Data Read")

@@ -35,7 +35,7 @@ def main():
     a, d, ld, ldg, cmap, cimap = read_genome_maps()
     print("Genome Maps Loaded.")
     df = read_database_txt(arg[-2])
-    nop = int(arg[-1])
+    nop = abs(int(arg[-1]))
     print("Data Read.")
     a_h = []
     d_h = []

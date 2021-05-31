@@ -15,7 +15,8 @@ rule all:
 		"downloads/gtfs",
 		"downloads/cds",
 		"downloads/pep",
-		"genome_maps"
+		"genome_maps",
+		directory("processed/pfam_matrices")
 		
 	
 
@@ -69,7 +70,7 @@ rule download_gtf:
 # read the list of gtf links
 pep_links = pd.Series(np.loadtxt("download_links/protein_seq.txt", dtype="str"))
 # Get the expected list of seq output files
-pep_files = list("downloads/pep/" + seq_links.str.split("/").str[-1])
+pep_files = list("downloads/pep/" + pep_links.str.split("/").str[-1])
 rule download_pep:
 	input:
 		"download_links/protein_seq.txt"
@@ -132,37 +133,43 @@ rule create_genome_map:
 		"python scripts/create_genome_map/create_genome_maps.py {input.in_dir} {output}"
 
 
+# get the list of selected index file names we expect from homology databases
+selected_index_files = list("processed/" + pd.Series(species)  + "_selected_indexes.npy")
 rule select_homology_records:
 	input:
+		expand("homology_databases/{SPECIES}.homologies.tsv.gz", SPECIES = species),
 		"scripts/dist_matrix",
 		directory("homology_databases")
 	output:
-		directory("processed")
+		directory("processed"),
+		selected_index_files
 	params:
 		# The number of records to be selected from each file
-		num_records = 2
+		num_records = 1000
 	shell:
 		"""
 		python scripts/select_data.py {params.num_records}
 		"""
 rule find_neighbor_genes:
 	input:
+		selected_index_files,
 		directory("processed"),
-		direcotry("homology_databases"),
+		directory("homology_databases"),
 		"genome_maps"
 	output:
-		"{SPECIES}_selected_indexes.npy"
+		"processed/neighbor_genes.json"
 	script:
 		"scripts/neighbor_genes.py"
 		
 	
 rule prep_synteny:
 	input:
-		directory("downloads/pep"),
-		directory("downloads/cds")
+		"processed/neighbor_genes.json",
+		protein_files = pep_files,
+		sequence_files = seq_files
 	output:
 		directory("processed/synteny_matrices"),
-		"protein_seq_positve.fa"
+		"protein_seq_positive.fa"
 	threads:
 		4
 	shell:
@@ -172,17 +179,26 @@ rule prep_synteny:
 
 rule process_negatives:
 	input:
-		"negative_samples_50K.txt.gz"
+		"protein_seq_positive.fa",
+		"genome_maps",
+		neg_samples = "negative_samples_50K.txt.gz",
+		files = pep_files
 	output:
+		"processed/neighbor_genes_negative.json",
 		"pro_seq_negative.fa"
+	threads:
+		4
 	shell:
 		"""
-		python scripts/process_negative.py {input} number_of_threads
+		# sometimes snakemake will execute this before other steps so we need to make the processed dir first, just in case
+		mkdir -p processed
+
+		python scripts/process_negative.py {input.neg_samples} {threads}
 		"""
 
 rule parse_pfam_domains:
 	input:
-		positive = "pro_seq_positive.fa",
+		positive = "protein_seq_positive.fa",
 		negative = "pro_seq_negative.fa"
 	output:
 		"pfam_db_positive.h5",
@@ -190,13 +206,19 @@ rule parse_pfam_domains:
 
 	shell:
 		"""
-		python pfam_parser.py {input.positive} {input.positive}
+		python scripts/pfam_parser.py {input.positive} {input.negative}
 		"""
 	
 rule pfam_matrix:
 	input:
+		"pfam_db_positive.h5",
+		"pfam_db_negative.h5",
 		"negative_samples_50K.txt.gz",
-		directory("homology/databases")
+		directory("homology_databases")
 	output:
 		directory("processed/pfam_matrices")
+	shell:
+		"""
+		python scripts/pfam_matrix.py {input}
+		"""
 
