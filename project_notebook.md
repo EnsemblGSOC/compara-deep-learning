@@ -18,3 +18,6 @@ Reading through the code for the cmap, it looks like it's list of dictionaries. 
 Wed Jun  2 08:04:06 BST 2021
 
 I am running hmmrscan on the positive file. However, this is really really slow as stated in the project description. I am going to run it on the positive examples, however, I am going to download GSoC 2019's domtblout file from http://ftp.ebi.ac.uk/pub/databases/ensembl/mateus/gsoc_2019/pfam_scan/pro_seq_negative/pro_seq_negative.fa.domtblout.gz. The negative examples that I run has far more examples than the positive version I am doing myself and would take probably days to align so downloading is expedient. I will run a full pipeline from start to end at a future date.
+
+Thu Jun  3 04:42:57 BST 2021
+I Building on what I said yesterday, I believe that I have managed to successfully run the entire pre-processing pipeline for the 50k negative examples data-set. Now I need to understand the NN structure and understand the different inputs to the traning script. 
