@@ -1,3 +1,3 @@
 # The pipeline DAG
 
-![image info](./dag.png![image info](./pictures/image.png))
+![alt text](https://github.com/AidanMar/compara-deep-learning/blob/master/pipeline2/dag.png)
