@@ -11,12 +11,15 @@ species = list(np.loadtxt(config["homology_species_list"], dtype="str"))
 
 rule all:
 	input:
-		expand( "homology_databases/{SPECIES}.homologies.tsv.gz", SPECIES=species ),
-		"downloads/gtfs",
-		"downloads/cds",
-		"downloads/pep",
-		"genome_maps",
-		directory("processed/pfam_matrices")
+		# expand( "homology_databases/{SPECIES}.homologies.tsv.gz", SPECIES=species ),
+		# "downloads/gtfs",
+		# "downloads/cds",
+		# "downloads/pep",
+		# "genome_maps",
+		# directory("processed/pfam_matrices"),
+		# #"downloads/pfam/Pfam-A.seed"
+		# "hmmer/Pfam-A.hmm.h3p",
+		"dataset"
 		
 	
 
@@ -80,6 +83,37 @@ rule download_pep:
 		log_path = "logs/pep_download_log.txt"
 	shell:
 		"scripts/downloader.sh {input} {output.out_dir} {output.log_path}"
+
+rule download_pfam:
+	input:
+		"download_links/pfam_links.txt"
+	output:
+		out_dir = directory("downloads/pfam"),
+		out_file = "downloads/pfam/Pfam-A.seed.gz"
+	params:
+		log_path = "logs/pfam_download_log.txt",
+		out_file_prefix = "downloads/pfam/Pfam-A.seed"
+	shell:
+		"""
+		bash scripts/downloader.sh {input} {output.out_dir} {output.log_path}
+		gunzip {params.out_file_prefix}
+		"""
+
+rule hmmer_build_and_press:
+	input:
+		"downloads/pfam/Pfam-A.seed"
+	output:
+		"hmmer/Pfam-A.hmm.h3f",
+		"hmmer/Pfam-A.hmm.h3i",
+		"hmmer/Pfam-A.hmm.h3m",
+		"hmmer/Pfam-A.hmm.h3p",
+		hmm="hmmer/Pfam-A.hmm"		
+	shell:
+		"""
+		hmmbuild {output.hmm} {input}
+		hmmpress {output.hmm}
+		"""
+
 
 # rule download_files:
 # 	"""
@@ -196,10 +230,33 @@ rule process_negatives:
 		python scripts/process_negative.py {input.neg_samples} {threads}
 		"""
 
-rule parse_pfam_domains:
+rule hmmerscan_positive:
 	input:
 		positive = "protein_seq_positive.fa",
-		negative = "pro_seq_negative.fa"
+		hmm_file = "hmmer/Pfam-A.hmm"
+	output:
+		"hmmer/domtblout_files/protein_seq_positive.fa.domtblout"
+	shell:
+		"""
+		hmmscan --domtblout {output} {input.hmm_file} {input.positive}
+		"""
+
+rule hmmerscan_negative:
+	input:
+		negative = "pro_seq_negative.fa",
+		hmm_file = "hmmer/Pfam-A.hmm"
+	output:
+		"hmmer/domtblout_files/pro_seq_negative.fa.domtblout"
+	shell:
+		"""
+		hmmscan --domtblout {output} {input.hmm_file} {input.negative}
+		"""
+
+
+rule parse_pfam_domains:
+	input:
+		positive = "hmmer/domtblout_files/protein_seq_positive.fa.domtblout",
+		negative = "hmmer/domtblout_files/pro_seq_negative.fa.domtblout"
 	output:
 		"pfam_db_positive.h5",
 		"pfam_db_negative.h5"
@@ -211,14 +268,28 @@ rule parse_pfam_domains:
 	
 rule pfam_matrix:
 	input:
+		expand("homology_databases/{SPECIES}.homologies.tsv.gz", SPECIES = species),
 		"pfam_db_positive.h5",
 		"pfam_db_negative.h5",
-		"negative_samples_50K.txt.gz",
-		directory("homology_databases")
+		directory("homology_databases"),
+		neg_examples="negative_samples_50K.txt.gz"				
 	output:
-		directory("processed/pfam_matrices")
+		"processed/pfam_matrices/negative_samples_50K_pfam_matrices.npy",
+		expand("processed/pfam_matrices/{SPECIES}_pfam_matrices.npy", SPECIES = species)		
 	shell:
 		"""
-		python scripts/pfam_matrix.py {input}
+		python scripts/pfam_matrix.py {input.neg_examples}
 		"""
 
+rule finalise:
+	input:
+		"processed/pfam_matrices/negative_samples_50K_pfam_matrices.npy",
+		expand("processed/pfam_matrices/{SPECIES}_pfam_matrices.npy", SPECIES = species),
+		neg_examples="negative_samples_50K.txt.gz"
+	output:
+		"dataset"
+	shell:
+		"""
+		python scripts/finalize_dataset.py {input.neg_examples}
+		echo "Pre-processing COMPLETE!!!"
+		"""
