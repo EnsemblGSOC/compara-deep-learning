@@ -45,11 +45,38 @@ This will download an html file, likely called index.html. If you open this html
 If you inspect one of these files, eg  homology_databases/homo_sapiens.homologies.tsv.gz you'll see that the left hand column displays a human gene, with an unfriendly name like ENSG00000271254 . Further along is a column called homology_gene_stable_id which gives the id of a gene like ENSNLEG00000033214. If you go this page --- https://asia.ensembl.org/Multi/Search/ --- you can look up what these genes are. You'll see that ENSNLEG00000033214 is *novel gene (Northern white-cheeked gibbon Gene)*, whilst ENSG00000271254 is a human gene. This matches what is written in the file for the species. The homology tsv file will tell you the type of homology relationship between these species, eg "ortholog_many2many". What each of these types means is detailed here: https://m.ensembl.org/info/genome/compara/homology_types.html. The file also contains a GOC score as well which will further be used as a feature prediction for the NN *(I think this is true, double check)*.
 
 
-## Creating a genome map
+## The Genome Map
 
-So earlier on we downloaded a set of gtf files from many many species, and each one outlines the position of all the genes on the genome of that particular species. This point in the pipeline uses a bunch of scripts, located in the create_genome_maps/ directory, to create a map of all the genes. This map contains .....
+So earlier on we downloaded a set of gtf files from many many species, and each one outlines the position of all the genes on the genome of that particular species. This point in the pipeline uses a bunch of scripts, located in the create_genome_maps/ directory, to create a map of all the genes. It's a pickle file so you can read it using pandas.read_pickle. This map contains in it's current instantiation from the previous GSoC (on date Wed Jun  9 06:16:40 BST 2021) is structured as follows:
+
+There is a top level dictionary with the following keys: ['cmap', 'cimap', 'ld', 'ldg', 'a', 'd'].
+Behind each of these keys is a list of the same length as the number of species in set of gtf files that you downloaded earlier. So within each of the following dictionaries you'll get one of these per species. Each contains the following:
+
+- genome_maps["cmap"] is a list of dictionaries mapping each gene to each chromosome for each species
+- genome_maps["cimap"] (*I am unsure*) gives the list of gene indexes on each chromosome. See genome_maps["ldg"] below. 
+- genome_maps["ld"] is a dictionary containing lists of genes for each species
+- genome_maps["ldg"] (*I am unsure*) I think it's a dictionary mapping each gene to an arbitrary index  (is a list of dictionaries containing the start positions for each gene on each chromosome)
+- genome_maps["a"] I think is a dataframe from version of the gtf file including only the protein coding regions. The indexes match those in genome_maps["ld"]
+- genome_maps["d"] maps each species to it's index position in all of the other lists. For example, if you type 
+
+'''
+genome_maps["d"]["Homo_sapiens"]
+'''
+you'll get back
+
+72
+
+If you then go and look at genome_maps["cmap"][72], you'll see the list of all genes and their chromosomes for homosapiens.
+
+
+The geneome map contains a lot of redundant information at the moment.
+
 
 Roughly, this map is created by going through every downloaded gtf file as a pandas dataframe and retaining only the genes from the gtf (as opposed to transcripts, or some other genomic feature). We get a list of all these gene dataframes, one for each species, and a dictionary which takes a species name and tells you it's position in the list of gtf dataframes just created (this is done by the read_data.py script's read_data_genome function).  The get_data.py script's get_data_genome function uses this dataframe list and dictionary to...... *(This get's fairly convoluted without any available doc-strings. Complete this description of the cmap!!!)*.
+
+
+GOC scores
+If you look inside of the homology databases you'll find that there's a column called goc score which have values of 0,25,50,100. This is related to the number of different orthologs that nearby neighbouring genes have. See here for more details about its computation  https://asia.ensembl.org/info/genome/compara/Ortholog_qc_manual.html.
 
 
 
