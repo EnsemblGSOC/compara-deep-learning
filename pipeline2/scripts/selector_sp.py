@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 
+np.random.seed(42)
+
 
 def create_map_reverse(arr):
     m = {}
@@ -23,14 +25,7 @@ def get_data_prop(df, nspmap, sp, prop, nos):
         return data
 
 
-def create_balanced_dataset_paralog(
-        df,
-        matrix,
-        spnmap,
-        nspmap,
-        nos,
-        hom_type,
-        spname):
+def create_balanced_dataset_paralog(df, matrix, spnmap, nspmap, nos, hom_type, spname):
     df = df[df["homology_type"] == hom_type]
     dist = matrix[spnmap[spname]]
     dist_sort = np.argsort(dist)
@@ -59,14 +54,7 @@ def select_data_goc(df, prop, nos):
         return df.loc[df.index.values[rind[:nos]]]
 
 
-def create_balanced_dataset_ortholog(
-        df,
-        matrix,
-        spnmap,
-        nspmap,
-        nos,
-        hom_type,
-        spname):
+def create_balanced_dataset_ortholog(df, matrix, spnmap, nspmap, nos, hom_type, spname):
     df = df[df["homology_type"] == hom_type]
     dist = matrix[spnmap[spname]]
     dist_sort = np.argsort(dist)
@@ -95,16 +83,21 @@ def select(df, nos, matrix, spnmap, nspmap, sp):
 
     # get the paralogy data
     df_p1 = create_balanced_dataset_paralog(
-        df, matrix, spnmap, nspmap, nos_p, "within_species_paralog", sp)
+        df, matrix, spnmap, nspmap, nos_p, "within_species_paralog", sp
+    )
     df_p2 = create_balanced_dataset_paralog(
-        df, matrix, spnmap, nspmap, nos_p, "other_paralog", sp)
+        df, matrix, spnmap, nspmap, nos_p, "other_paralog", sp
+    )
     # get the orthology data
     df_o1 = create_balanced_dataset_ortholog(
-        df, matrix, spnmap, nspmap, nos_o, "ortholog_one2many", sp)
+        df, matrix, spnmap, nspmap, nos_o, "ortholog_one2many", sp
+    )
     df_o2 = create_balanced_dataset_ortholog(
-        df, matrix, spnmap, nspmap, nos_o, "ortholog_many2many", sp)
+        df, matrix, spnmap, nspmap, nos_o, "ortholog_many2many", sp
+    )
     df_o3 = create_balanced_dataset_ortholog(
-        df, matrix, spnmap, nspmap, nos_o, "ortholog_one2one", sp)
+        df, matrix, spnmap, nspmap, nos_o, "ortholog_one2one", sp
+    )
 
     # concatenate everything
     df = pd.concat([df_o1, df_o2, df_o3, df_p1, df_p2])
