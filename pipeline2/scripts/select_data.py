@@ -27,6 +27,11 @@ def get_selection_data():
 
 def read_select_data(dirname, matrix, spnmap, nspmap, nos):
     lf = os.listdir(dirname)
+    # # Select records only from the species in the intersection of the 3 datasets
+    # lf = (
+    #     pd.Series(np.loadtxt("config/database_species_intersection.txt", dtype="str"))
+    #     + ".homologies.tsv.gz"
+    # )
     if len(lf) == 0:
         print("No Files in the Directory!!!!!!!")
         sys.exit(1)
