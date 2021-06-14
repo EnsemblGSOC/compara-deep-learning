@@ -50,7 +50,7 @@ def main():
     arg = sys.argv
     nos = int(arg[-1])
     matrix, spnmap, nspmap = get_selection_data()
-    read_select_data("homology_databases", matrix, spnmap, nspmap, nos)
+    read_select_data("downloads/homology_databases", matrix, spnmap, nspmap, nos)
 
 
 if __name__ == "__main__":

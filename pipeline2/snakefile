@@ -8,7 +8,7 @@ configfile:
 # get the list of species names for the homology databases
 
 # This was an old approach
-species = np.loadtxt("config/database_species_intersection.txt", dtype="str")
+species = np.loadtxt("download_links/database_species_intersection.txt", dtype="str")
 cds_links = pd.Series(np.loadtxt("download_links/seq_intersect_link.txt", dtype="str"))
 # Get the expected list of seq output files
 seq_files = list("downloads/cds/" + cds_links.str.split("/").str[-1])
@@ -29,7 +29,13 @@ rule all:
 		expand( "downloads/homology_databases/{SPECIES}.homologies.tsv.gz", SPECIES=species ),
 		seq_files,
 		gtf_files,
-		pep_files
+		pep_files,
+		"genome_maps",
+		"Diamond/astral40.dmnd",
+		expand("processed/{SPECIES}_selected_indexes.npy", SPECIES = species),
+		"processed/neighbor_genes.json",
+		"protein_seq_positive.fa",
+		"processed/neighbor_genes_negative.json"
 		
 	
 
@@ -165,103 +171,93 @@ rule download_homology_databases:
 # # 		hmmpress {output.hmm}
 # # 		"""
 
-# rule Diamond_setup:
-# 	output:
-# 		"astral40.dmnd"
-# 	shell:
-# 		"""
-# 		mkdir -p Diamond
-# 		cd Diamond
-# 		# Download the scope database
-# 		wget https://scop.berkeley.edu/downloads/scopeseq-2.07/astral-scopedom-seqres-gd-sel-gs-bib-40-2.07.fa
-# 		# Set-up the binary DIAMOND database file
-# 		diamond makedb --in astral-scopedom-seqres-gd-sel-gs-bib-40-2.07.fa -d astral40
-# 		"""
-
-
-
-
-
-
+rule Diamond_setup:
+	output:
+		"Diamond/astral40.dmnd"
+	shell:
+		"""
+		mkdir -p Diamond
+		cd Diamond
+		# Download the scope database
+		wget https://scop.berkeley.edu/downloads/scopeseq-2.07/astral-scopedom-seqres-gd-sel-gs-bib-40-2.07.fa
+		# Set-up the binary DIAMOND database file
+		diamond makedb --in astral-scopedom-seqres-gd-sel-gs-bib-40-2.07.fa -d astral40
+		"""
 
 # # The species for which there are proteins, homology databases, and values in the distance matrix are different
 # # This causes drama downstream. To overcome this, I find the intersection of three species lists
 
+rule create_genome_map:
+	input:
+		files = gtf_files,
+		in_dir = directory("downloads/gtfs")
+	output:
+		"genome_maps"
+	shell:
+		"python scripts/create_genome_map/create_genome_maps.py {input.in_dir} {output}"
+
+rule select_homology_records:
+	input:
+		expand("downloads/homology_databases/{SPECIES}.homologies.tsv.gz", SPECIES = species),
+		"scripts/dist_matrix",
+		"download_links/database_species_intersection.txt"
+	output:
+		expand("processed/{SPECIES}_selected_indexes.npy", SPECIES = species),
+		directory("processed")		
+	params:
+		# The number of records to be selected from each file
+		num_records = 25
+	shell:
+		"""
+		python scripts/select_data.py {params.num_records}
+		"""
 
 
-# rule create_genome_map:
-# 	input:
-# 		files = gtf_files,
-# 		in_dir = directory("downloads/gtfs")
-# 	output:
-# 		"genome_maps"
-# 	shell:
-# 		"python scripts/create_genome_map/create_genome_maps.py {input.in_dir} {output}"
-
-# intersection_species = list(np.loadtxt("config/database_species_intersection.txt", dtype="str"))
-# # get the list of selected index file names we expect from homology databases
-# selected_index_files = list("processed/" + pd.Series(intersection_species)  + "_selected_indexes.npy")
-# rule select_homology_records:
-# 	input:
-# 		expand("homology_databases/{SPECIES}.homologies.tsv.gz", SPECIES = species),
-# 		"scripts/dist_matrix",
-# 		"config/database_species_intersection.txt",
-# 		directory("homology_databases")
-# 	output:
-# 		directory("processed"),
-# 		selected_index_files
-# 	params:
-# 		# The number of records to be selected from each file
-# 		num_records = 50
-# 	shell:
-# 		"""
-# 		python scripts/select_data.py {params.num_records}
-# 		"""
-# rule find_neighbor_genes:
-# 	input:
-# 		selected_index_files,
-# 		directory("processed"),
-# 		directory("homology_databases"),
-# 		"genome_maps"
-# 	output:
-# 		"processed/neighbor_genes.json"
-# 	script:
-# 		"scripts/neighbor_genes.py"
+rule find_neighbor_genes:
+	input:
+		expand("processed/{SPECIES}_selected_indexes.npy", SPECIES = species),
+		directory("processed"),
+		directory("downloads/homology_databases"),
+		"genome_maps"
+	output:
+		"processed/neighbor_genes.json"
+	script:
+		"scripts/neighbor_genes.py"
 		
 	
-# rule prep_synteny:
-# 	input:
-# 		"processed/neighbor_genes.json",
-# 		protein_files = pep_files,
-# 		sequence_files = seq_files
-# 	output:
-# 		directory("processed/synteny_matrices"),
-# 		"protein_seq_positive.fa"
-# 	threads:
-# 		4
-# 	shell:
-# 		"""
-# 		python scripts/prepare_synteny_matrix.py {threads}
-# 		"""
+rule prep_synteny:
+	input:
+		"processed/neighbor_genes.json",
+		protein_files = pep_files,
+		sequence_files = seq_files
+	output:
+		directory("processed/synteny_matrices"),
+		"protein_seq_positive.fa"
+	threads:
+		4
+	shell:
+		"""
+		python scripts/prepare_synteny_matrix.py {threads}
+		"""
 
-# rule process_negatives:
-# 	input:
-# 		"protein_seq_positive.fa",
-# 		"genome_maps",
-# 		neg_samples = "negative_samples_50K.txt.gz",
-# 		files = pep_files
-# 	output:
-# 		"processed/neighbor_genes_negative.json",
-# 		"pro_seq_negative.fa"
-# 	threads:
-# 		4
-# 	shell:
-# 		"""
-# 		# sometimes snakemake will execute this before other steps so we need to make the processed dir first, just in case
-# 		mkdir -p processed
+rule process_negatives:
+	input:
+		#"protein_seq_positive.fa",
+		"genome_maps",
+		neg_samples = "negative_samples_50K.txt.gz",
+		files = pep_files
+	output:
+		"processed/neighbor_genes_negative.json",
+		"pro_seq_negative.fa"
+	threads:
+		4
+	shell:
+		"""
+		# sometimes snakemake will execute this before other steps so we need to make the processed dir first, just in case
+		mkdir -p processed
 
-# 		python scripts/process_negative.py {input.neg_samples} {threads}
-# 		"""
+		python scripts/process_negative.py {input.neg_samples} {threads}
+		"""
 
 # rule Diamond_positive:
 # 	input:

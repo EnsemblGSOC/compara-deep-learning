@@ -42,7 +42,7 @@ def read_data_homology(dirname):
 def main():
     a, d, ld, ldg, cmap, cimap = read_genome_maps()
     print("Genome Maps Loaded.")
-    a_h, d_h = read_data_homology("homology_databases")
+    a_h, d_h = read_data_homology("downloads/homology_databases")
     print("Data Read.")
     n = 3
     _ = create_data_homology_ls(a_h, d_h, n, a, d, ld, ldg, cmap, cimap, 1)

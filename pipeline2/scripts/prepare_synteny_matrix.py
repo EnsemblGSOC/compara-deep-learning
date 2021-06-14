@@ -80,7 +80,7 @@ def main():
     arg = sys.argv
     nop = abs(int(arg[-1]))
     n = 3
-    a_h, d_h = read_data_homology("homology_databases")
+    a_h, d_h = read_data_homology("downloads/homology_databases")
     print("Data Read")
     lsy = load_neighbor_genes()
     gene_sequences = read_gene_sequences(a_h, lsy, "downloads/cds", "gene_seq_positive")
