@@ -71,3 +71,43 @@ ftp_paths = base_link + pd.Series(lt)
 ftp_paths.to_csv("download_links/gtf_link.txt", index=False, header=False)
 print("gtf_link.txt written")
 
+"""
+The original code just got the list of all files willy nilly.
+We need to only work with species for which we actually have data.
+To do that we need to find the intersection of the species lists from the different databases
+"""
+
+
+homo_species = np.loadtxt("download_links/homology_database_list.txt", dtype="str")
+dist_matrix_species = np.loadtxt("scripts/sp_names", dtype="str")
+links = pd.Series(np.loadtxt("download_links/protein_seq.txt", dtype="str"))
+pep_species = links.str.split("/").str[-1].str.split(".").str[0].str.lower()
+final_species_list = pd.Series(
+    list(set(pep_species) & set(homo_species) & set(dist_matrix_species))
+).sort_values()
+final_species_list.to_csv(
+    "download_links/database_species_intersection.txt", index=False, header=None
+)
+paths = [
+    "download_links/gtf_link.txt",
+    "download_links/protein_seq.txt",
+    "download_links/seq_link.txt",
+]
+output = [
+    "download_links/gtf_intersect_link.txt",
+    "download_links/protein_intersect_seq.txt",
+    "download_links/seq_intersect_link.txt",
+]
+for i, path in enumerate(paths):
+    link_series = pd.Series(np.loadtxt(path, dtype="str"))
+    mask = (
+        link_series.str.split("/")
+        .str[-1]
+        .str.split(".")
+        .str[0]
+        .str.lower()
+        .isin(final_species_list)
+    )
+    print(link_series[mask])
+    link_series[mask].to_csv(output[i], index=False, header=None)
+
