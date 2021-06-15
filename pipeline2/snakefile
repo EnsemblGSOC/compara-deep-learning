@@ -35,7 +35,9 @@ rule all:
 		expand("processed/{SPECIES}_selected_indexes.npy", SPECIES = species),
 		"processed/neighbor_genes.json",
 		"protein_seq_positive.fa",
-		"processed/neighbor_genes_negative.json"
+		"processed/neighbor_genes_negative.json",
+		"Diamond/outputs/positive/outs.tsv",
+		"Diamond/outputs/negative/outs.tsv"
 		
 	
 
@@ -259,28 +261,29 @@ rule process_negatives:
 		python scripts/process_negative.py {input.neg_samples} {threads}
 		"""
 
-# rule Diamond_positive:
-# 	input:
-# 		positive = "protein_seq_positive.fa"
-# 	output:
-# 		outdir = "Diamond/outputs/positive",
-# 		alignments = "Diamond/outputs/positive/outs.tsv"
-# 	shell:
-# 		"""
-# 		mkdir -p {output.outdir}
-# 		diamond blastp -q {input.positive} -d Diamond/astral40 -o {output.outdir}/out.tsv --very-sensitive
-# 		"""
-# rule Diamond_negative:
-# 	input:
-# 		positive = "pro_seq_negative.fa"
-# 	output:
-# 		outdir = "Diamond/outputs/negative",
-# 		alignments = "Diamond/outputs/negative/outs.tsv"
-# 	shell:
-# 		"""
-# 		mkdir -p {output.outdir}
-# 		diamond blastp -q {input.negative} -d Diamond/astral40 -o {output.outdir}/out.tsv --very-sensitive
-# 		"""
+rule Diamond_positive:
+	input:
+		positive = "protein_seq_positive.fa"
+	output:
+		outdir = directory("Diamond/outputs/positive"),
+		alignments = "Diamond/outputs/positive/outs.tsv"
+	shell:
+		"""
+		mkdir -p {output.outdir}
+		diamond blastp -q {input.positive} -d Diamond/Pfam-A_homemade -o {output.alignments} --very-sensitive
+ 		"""
+
+rule Diamond_negative:
+	input:
+		negative = "pro_seq_negative.fa"
+	output:
+		outdir = directory("Diamond/outputs/negative"),
+		alignments = "Diamond/outputs/negative/outs.tsv"
+	shell:
+		"""
+		mkdir -p {output.outdir}
+		diamond blastp -q {input.negative} -d Diamond/Pfam-A_homemade -o {output.alignments} --very-sensitive
+		"""
 
 
 
