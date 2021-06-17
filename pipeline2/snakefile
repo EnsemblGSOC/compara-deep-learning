@@ -37,7 +37,8 @@ rule all:
 		"protein_seq_positive.fa",
 		"processed/neighbor_genes_negative.json",
 		"Diamond/outputs/positive/outs.tsv",
-		"Diamond/outputs/negative/outs.tsv"
+		"Diamond/outputs/negative/outs.tsv",
+		"processed/pfam_matrices/negative_samples_50K_pfam_matrices.npy"
 		
 	
 
@@ -263,6 +264,7 @@ rule process_negatives:
 
 rule Diamond_positive:
 	input:
+		"Diamond/Pfam-A.dmnd",
 		positive = "protein_seq_positive.fa"
 	output:
 		outdir = directory("Diamond/outputs/positive"),
@@ -270,19 +272,25 @@ rule Diamond_positive:
 	shell:
 		"""
 		mkdir -p {output.outdir}
-		diamond blastp -q {input.positive} -d Diamond/Pfam-A_homemade -o {output.alignments} --very-sensitive
+		diamond blastp -q {input.positive} -d Diamond/Pfam-A -o {output.alignments} --very-sensitive \
+		--threads {threads} --outfmt 6 qseqid qlen sseqid slen qstart qend sstart send
+
  		"""
 
 rule Diamond_negative:
 	input:
+		"Diamond/Pfam-A.dmnd",
 		negative = "pro_seq_negative.fa"
 	output:
 		outdir = directory("Diamond/outputs/negative"),
 		alignments = "Diamond/outputs/negative/outs.tsv"
+	threads:
+		4
 	shell:
 		"""
 		mkdir -p {output.outdir}
-		diamond blastp -q {input.negative} -d Diamond/Pfam-A_homemade -o {output.alignments} --very-sensitive
+		diamond blastp -q {input.negative} -d Diamond/Pfam-A -o {output.alignments} --very-sensitive \
+		--threads {threads} --outfmt 6 qseqid qlen sseqid slen qstart qend sstart send
 		"""
 
 
@@ -311,33 +319,33 @@ rule Diamond_negative:
 # # 		"""
 
 
-# rule parse_pfam_domains:
-# 	input:
-# 		positive = "hmmer/domtblout_files/protein_seq_positive.fa.domtblout",
-# 		negative = "hmmer/domtblout_files/pro_seq_negative.fa.domtblout"
-# 	output:
-# 		"pfam_db_positive.h5",
-# 		"pfam_db_negative.h5"
+rule parse_pfam_domains:
+	input:
+		positive = "Diamond/outputs/positive/outs.tsv",
+		negative = "Diamond/outputs/negative/outs.tsv"
+	output:
+		"Diamond/outputs/positive/pfam_db_positive.h5",
+		"Diamond/outputs/negative/pfam_db_negative.h5"
 
-# 	shell:
-# 		"""
-# 		python scripts/pfam_parser.py {input.positive} {input.negative}
-# 		"""
+	shell:
+		"""
+		python scripts/pfam_parsing/pfam_parser.py {input.positive} {input.negative}
+		"""
 	
-# rule pfam_matrix:
-# 	input:
-# 		expand("homology_databases/{SPECIES}.homologies.tsv.gz", SPECIES = intersection_species),
-# 		"pfam_db_positive.h5",
-# 		"pfam_db_negative.h5",
-# 		directory("homology_databases"),
-# 		neg_examples="negative_samples_50K.txt.gz"				
-# 	output:
-# 		"processed/pfam_matrices/negative_samples_50K_pfam_matrices.npy",
-# 		expand("processed/pfam_matrices/{SPECIES}_pfam_matrices.npy", SPECIES = intersection_species)		
-# 	shell:
-# 		"""
-# 		python scripts/pfam_matrix.py {input.neg_examples}
-# 		"""
+rule pfam_matrix:
+	input:
+		expand("downloads/homology_databases/{SPECIES}.homologies.tsv.gz", SPECIES = species),
+		"Diamond/outputs/positive/pfam_db_positive.h5",
+		"Diamond/outputs/negative/pfam_db_negative.h5",
+		directory("downloads/homology_databases"),
+		neg_examples="negative_samples_50K.txt.gz"				
+	output:
+		"processed/pfam_matrices/negative_samples_50K_pfam_matrices.npy",
+		expand("processed/pfam_matrices/{SPECIES}_pfam_matrices.npy", SPECIES = species)		
+	shell:
+		"""
+		python scripts/pfam_matrix_diamond.py {input.neg_examples}
+		"""
 
 # rule finalise:
 # 	input:
