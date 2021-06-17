@@ -1,0 +1,4 @@
+name: compara
+channels:
+  - defaults
+prefix: /home/aidan/anaconda3/envs/compara/envs/compara
