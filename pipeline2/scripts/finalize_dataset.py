@@ -39,18 +39,22 @@ def prepare_features(a_h, d_h, sptree, label):
     rows = []
     smg_name = "_synteny_matrices_global.npy"
     sml_name = "_synteny_matrices_local.npy"
+    pfam_name = "_pfam_matrices.npy"
     smi_name = "_indexes.npy"
-    dir_name = "processed/synteny_matrices/"
+    syn_dir_name = "processed/synteny_matrices/"
+    pfam_dir_name = "processed/pfam_matrices/"
     for i in range(len(a_h)):
         df = a_h[i]
         n = d_h[i]
         try:
-            smg = np.load(dir_name + n + smg_name)
-            sml = np.load(dir_name + n + sml_name)
-            indexes = np.load(dir_name + n + smi_name)
+            smg = np.load(syn_dir_name + n + smg_name)
+            sml = np.load(syn_dir_name + n + sml_name)
+            indexes = np.load(syn_dir_name + n + smi_name)
+            pfam = np.load(pfam_dir_name + n + pfam_name)
         except BaseException:
             print("Incomplete data for:", n)
             continue
+        print("Complete data for" + n)
         df = df.loc[indexes]
 
         (
@@ -74,6 +78,7 @@ def prepare_features(a_h, d_h, sptree, label):
             r["label"] = label[row["homology_type"]]
             r["global_alignment_matrix"] = smg[i]
             r["local_alignment_matrix"] = sml[i]
+            r["pfam_matrix"] = pfam[i]
             r["index_homology_dataset"] = index
             r["bls"] = branch_length_species[i]
             r["blhs"] = branch_length_homology_species[i]
@@ -87,7 +92,7 @@ def prepare_features(a_h, d_h, sptree, label):
 def main():
     arg = sys.argv
     nfname = arg[-1]
-    a_h, d_h = read_data_homology("homology_databases", nfname)
+    a_h, d_h = read_data_homology("downloads/homology_databases", nfname)
     labels = dict(
         ortholog_one2one=1,
         other_paralog=0,

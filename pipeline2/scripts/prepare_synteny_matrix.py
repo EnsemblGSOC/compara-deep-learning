@@ -3,6 +3,7 @@ import pandas as pd
 import json
 import os
 import sys
+import progressbar
 import pickle
 from select_data import read_db_homology
 from threads import Procerssrunner
@@ -63,7 +64,7 @@ def read_data_homology(dirname):
         sys.exit(1)
     a_h = []
     d_h = []
-    for x in lf:
+    for x in progressbar.progressbar(lf):
         df, n = read_db_homology(dirname, x)
         n = n.split()[0]
         try:

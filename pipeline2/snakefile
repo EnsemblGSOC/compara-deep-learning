@@ -26,19 +26,24 @@ gtf_files = list("downloads/gtfs/" + gtf_links.str.split("/").str[-1])
 
 rule all:
 	input:
-		expand( "downloads/homology_databases/{SPECIES}.homologies.tsv.gz", SPECIES=species ),
-		seq_files,
-		gtf_files,
-		pep_files,
-		"genome_maps",
-		"Diamond/astral40.dmnd",
-		expand("processed/{SPECIES}_selected_indexes.npy", SPECIES = species),
-		"processed/neighbor_genes.json",
-		"protein_seq_positive.fa",
-		"processed/neighbor_genes_negative.json",
-		"Diamond/outputs/positive/outs.tsv",
-		"Diamond/outputs/negative/outs.tsv",
-		"processed/pfam_matrices/negative_samples_50K_pfam_matrices.npy"
+		# expand( "downloads/homology_databases/{SPECIES}.homologies.tsv.gz", SPECIES=species ),
+		# seq_files,
+		# gtf_files,
+		# pep_files,
+		# "genome_maps",
+		# "Diamond/astral40.dmnd",
+		# expand("processed/{SPECIES}_selected_indexes.npy", SPECIES = species),
+		# "processed/neighbor_genes.json",
+		# "protein_seq_positive.fa",
+		# "processed/neighbor_genes_negative.json",
+		# "Diamond/outputs/positive/outs.tsv",
+		# "Diamond/outputs/negative/outs.tsv",
+		# "Diamond/outputs/positive/pfam_db_positive.h5",
+		# "Diamond/outputs/negative/pfam_db_negative.h5",
+		# "processed/pfam_matrices/negative_samples_50K_pfam_matrices.npy",
+		"dataset"
+		# "Diamond/outputs/negative/outs.tsv",
+		# "processed/pfam_matrices/negative_samples_50K_pfam_matrices.npy"
 		
 	
 
@@ -175,8 +180,10 @@ rule download_homology_databases:
 # # 		"""
 
 rule Diamond_setup:
+	input:
+		"Diamond/Pfam-A_subsample.fasta.gz"
 	output:
-		"Diamond/astral40.dmnd"
+		"Diamond/Pfam-A_subsample.dmnd"
 	shell:
 		"""
 		mkdir -p Diamond
@@ -184,7 +191,7 @@ rule Diamond_setup:
 		# Download the scope database
 		wget https://scop.berkeley.edu/downloads/scopeseq-2.07/astral-scopedom-seqres-gd-sel-gs-bib-40-2.07.fa
 		# Set-up the binary DIAMOND database file
-		diamond makedb --in astral-scopedom-seqres-gd-sel-gs-bib-40-2.07.fa -d astral40
+		diamond makedb --in {input} -d Pfam-A_subsample
 		"""
 
 # # The species for which there are proteins, homology databases, and values in the distance matrix are different
@@ -264,22 +271,25 @@ rule process_negatives:
 
 rule Diamond_positive:
 	input:
-		"Diamond/Pfam-A.dmnd",
+		"Diamond/Pfam-A_subsample.dmnd",
 		positive = "protein_seq_positive.fa"
 	output:
 		outdir = directory("Diamond/outputs/positive"),
 		alignments = "Diamond/outputs/positive/outs.tsv"
+	threads:
+		4
 	shell:
 		"""
 		mkdir -p {output.outdir}
-		diamond blastp -q {input.positive} -d Diamond/Pfam-A -o {output.alignments} --very-sensitive \
-		--threads {threads} --outfmt 6 qseqid qlen sseqid slen qstart qend sstart send
+		diamond blastp -q {input.positive} -d Diamond/Pfam-A_subsample -o {output.alignments} --very-sensitive \
+		--threads {threads} --verbose --outfmt 6 qseqid qlen sseqid slen qstart qend sstart send
 
  		"""
 
 rule Diamond_negative:
 	input:
-		"Diamond/Pfam-A.dmnd",
+		"Diamond/outputs/positive/outs.tsv",
+		"Diamond/Pfam-A_subsample.dmnd",
 		negative = "pro_seq_negative.fa"
 	output:
 		outdir = directory("Diamond/outputs/negative"),
@@ -289,8 +299,8 @@ rule Diamond_negative:
 	shell:
 		"""
 		mkdir -p {output.outdir}
-		diamond blastp -q {input.negative} -d Diamond/Pfam-A -o {output.alignments} --very-sensitive \
-		--threads {threads} --outfmt 6 qseqid qlen sseqid slen qstart qend sstart send
+		diamond blastp -q {input.negative} -d Diamond/Pfam-A_subsample -o {output.alignments} --very-sensitive \
+		--threads {threads} --verbose --outfmt 6 qseqid qlen sseqid slen qstart qend sstart send
 		"""
 
 
@@ -347,15 +357,15 @@ rule pfam_matrix:
 		python scripts/pfam_matrix_diamond.py {input.neg_examples}
 		"""
 
-# rule finalise:
-# 	input:
-# 		"processed/pfam_matrices/negative_samples_50K_pfam_matrices.npy",
-# 		expand("processed/pfam_matrices/{SPECIES}_pfam_matrices.npy", SPECIES = intersection_species),
-# 		neg_examples="negative_samples_50K.txt.gz"
-# 	output:
-# 		"dataset"
-# 	shell:
-# 		"""
-# 		python scripts/finalize_dataset.py {input.neg_examples}
-# 		echo "Pre-processing COMPLETE!!!"
-# 		"""
+rule finalise:
+	input:
+		"processed/pfam_matrices/negative_samples_50K_pfam_matrices.npy",
+		expand("processed/pfam_matrices/{SPECIES}_pfam_matrices.npy", SPECIES = species),
+		neg_examples="negative_samples_50K.txt.gz"
+	output:
+		"dataset"
+	shell:
+		"""
+		python scripts/finalize_dataset.py {input.neg_examples}
+		echo "Pre-processing COMPLETE!!!"
+		"""
