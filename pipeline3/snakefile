@@ -27,11 +27,11 @@ rule Diamond_alignment:
 		16
 	resources:
 		memory = 20000, # LFS memory in MBs
-		blocks = int(resources.memory/6000) # Diamond requires memory ~ blocks * 6Gb
+		blocks = 2 # Diamond requires memory ~ blocks * 6Gb
 	shell:
 		"""
 		diamond blastp -q {input} -d {params.diamond_db_path} -o {output} --very-sensitive \
-		--block-size {resources.memory} --threads {threads} --verbose \
+		--block-size {resources.blocks} --threads {threads} --verbose \
 		--outfmt 6 qseqid qlen sseqid slen qstart qend sstart send
 
  		"""
