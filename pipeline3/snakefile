@@ -1,10 +1,6 @@
 import numpy as np
 import pandas as pd
 
-# configfile:
-#     "config.json"
-
-
 # get the list of species names for the homology databases
 
 
