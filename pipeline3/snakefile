@@ -25,10 +25,14 @@ rule Diamond_alignment:
 		diamond_db_path = "/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Diamond/Pfam-A"
 	threads:
 		16
+	resources:
+		memory = 20000, # LFS memory in MBs
+		blocks = int(memory/6000) # Diamond requires memory ~ blocks * 6Gb
 	shell:
 		"""
 		diamond blastp -q {input} -d {params.diamond_db_path} -o {output} --very-sensitive \
-		--threads {threads} --verbose --outfmt 6 qseqid qlen sseqid slen qstart qend sstart send
+		--block-size {resources.memory} --threads {threads} --verbose \
+		--outfmt 6 qseqid qlen sseqid slen qstart qend sstart send
 
  		"""
 
