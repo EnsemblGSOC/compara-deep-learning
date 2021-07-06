@@ -27,7 +27,7 @@ rule Diamond_alignment:
 		16
 	resources:
 		memory = 20000, # LFS memory in MBs
-		blocks = int(params.memory/6000) # Diamond requires memory ~ blocks * 6Gb
+		blocks = int(resources.memory/6000) # Diamond requires memory ~ blocks * 6Gb
 	shell:
 		"""
 		diamond blastp -q {input} -d {params.diamond_db_path} -o {output} --very-sensitive \
