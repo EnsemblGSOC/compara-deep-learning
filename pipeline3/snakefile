@@ -9,14 +9,32 @@ configfile:
 
 
 species = np.loadtxt("config/database_species_intersection.txt", dtype="str")
+pep_paths = pd.Series(np.loadtxt("config/peptide_paths.txt", dtype="str"))
 
 rule all:
 	input:
-		expand("/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Diamond/Alignments/{species", SPECIES = species)
+		expand("/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Diamond/Alignments/{SPECIES}.outs.tsv", SPECIES = species)
+
+
+# function to map the species to the path of the peptide fasta file
+def pep_path_map(wildcards):
+	return pep_paths[pep_paths.str.contains(wildcards.SPECIES)].values[0]
 
 rule Diamond_alignment:
 	input:
+		pep_path_map
+	output:
+		"/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Diamond/Alignments/{SPECIES}.outs.tsv"
+	params:
+		diamond_db_path = "/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Diamond/Pfam-A"
+	threads:
+		16
+	shell:
+		"""
+		diamond blastp -q {input.positive} -d {params.diamond_db_path} -o {output} --very-sensitive \
+		--threads {threads} --verbose --outfmt 6 qseqid qlen sseqid slen qstart qend sstart send
 
+ 		"""
 
 
 # cds_links = pd.Series(np.loadtxt("download_links/seq_intersect_link.txt", dtype="str"))
