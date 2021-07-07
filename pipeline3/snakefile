@@ -2,10 +2,14 @@ import numpy as np
 import pandas as pd
 
 # get the list of species names for the homology databases
+configfile:
+    "config.json"
 
 
 species = np.loadtxt("config/database_species_intersection.txt", dtype="str")
 pep_paths = pd.Series(np.loadtxt("config/peptide_paths.txt", dtype="str"))
+homo_paths = pd.Series(np.loadtxt("config/homology_database_paths.txt", dtype="str"))
+gtf_paths =  pd.Series(np.loadtxt("config/gtf_paths.txt", dtype="str"))
 
 rule all:
 	input:
@@ -33,11 +37,11 @@ rule select_longest:
 
 rule Diamond_alignment:
 	input:
-		"/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Longest_Gene_Fasta/{SPECIES}_longest_pep.fa"
+		config["Longest_pep_fasta_path"] + "/{SPECIES}_longest_pep.fa"
 	output:
-		"/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Diamond/Alignments/{SPECIES}.outs.tsv"
+		config["Diamond_alinments_path"] + "/{SPECIES}.outs.tsv"
 	params:
-		diamond_db_path = "/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Diamond/Pfam-A"
+		diamond_db_path = config["Diamond_Pfam_db_path"]
 	threads:
 		16
 	resources:
@@ -50,6 +54,38 @@ rule Diamond_alignment:
 		--outfmt 6 qseqid qlen sseqid slen qstart qend sstart send
 
  		"""
+
+def gtf_path_map(wildcards):
+	return gtf_paths[gtf_paths.str.contains(wildcards.SPECIES)].values[0]
+
+def neighbour_path_map(wildcards):
+	gtf_path = gtf_paths[gtf_paths.str.contains(wildcards.SPECIES)]
+	#transform this into the output path of the neighbours
+	return config["neighbour_outdir"] + gtf_path.str.split("/").str[-1].str.split(".gtf").str[0] + ".json"
+
+rule species_neighbour:
+	input:
+		gtf_path_map
+	output:
+		neighbour_path_map
+	params:
+		num_neighbours = config["num_neighbours"]
+		out_dir = config["neighbour_outdir"]
+	shell:
+		"""
+		python scripts/geneNeighbourFormater.py --gtf {input} \
+		--nb_neighbours {params.num_neighbours} --out_prefix {params.out_dir}
+		"""
+
+def homo_path_map(wildcards):
+	return homo_paths[homo_paths.str.contains(wildcards.SPECIES)].values[0]
+
+rule select_samples:
+	input:
+		homo_path_map
+	output:
+		neighbour
+	
 
 
 
