@@ -56,7 +56,9 @@ def main(args):
     for gtfFiles in gtfFiles:
         print("fetch neighbours in " + gtfFiles)
         neighbours = fetchNeighbourDictionary(gtfFiles, nbNghbr)
-        neighbourFile = outPrefix + "/" + gtfFiles.split("/")[-1][:-4] + ".json"
+        neighbourFile = (
+            outPrefix + "/" + gtfFiles.split("/")[-1].split(".gtf")[0] + ".json"
+        )
         with open(neighbourFile, "w") as file_handler:
             file_handler.write(json.dumps(neighbours))
 
