@@ -16,6 +16,20 @@ rule all:
 def pep_path_map(wildcards):
 	return pep_paths[pep_paths.str.contains(wildcards.SPECIES)].values[0]
 
+rule select_longest:
+	input:
+		pep_path_map
+	output:
+		"/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Longest_Gene_Fasta/{SPECIES}_longest_pep.fa"
+	threads:
+		4
+	resources:
+		memory = 8000
+	shell:
+		"""
+		python  GeneReferencePetpideSelection.py --seq {input} --out_fasta {output}
+		"""
+
 rule Diamond_alignment:
 	input:
 		pep_path_map
@@ -35,6 +49,8 @@ rule Diamond_alignment:
 		--outfmt 6 qseqid qlen sseqid slen qstart qend sstart send
 
  		"""
+
+
 
 
 # cds_links = pd.Series(np.loadtxt("download_links/seq_intersect_link.txt", dtype="str"))
