@@ -61,7 +61,7 @@ def gtf_path_map(wildcards):
 def neighbour_path_map(wildcards):
 	gtf_path = gtf_paths[gtf_paths.str.contains(wildcards.SPECIES)]
 	#transform this into the output path of the neighbours
-	return config["neighbour_outdir"] + gtf_path.str.split("/").str[-1].str.split(".gtf").str[0] + ".json"
+	return config["species_neighbour_outdir"] + gtf_path.str.split("/").str[-1].str.split(".gtf").str[0] + ".json"
 
 rule species_neighbour:
 	input:
@@ -70,7 +70,7 @@ rule species_neighbour:
 		neighbour_path_map
 	params:
 		num_neighbours = config["num_neighbours"]
-		out_dir = config["neighbour_outdir"]
+		out_dir = config["species_neighbour_outdir"]
 	shell:
 		"""
 		python scripts/geneNeighbourFormater.py --gtf {input} \
@@ -82,10 +82,26 @@ def homo_path_map(wildcards):
 
 rule select_samples:
 	input:
-		homo_path_map
+		neighbourhood_json = neighbour_path_map,
+		homology_database = homo_path_map
 	output:
-		neighbour
-	
+		# The species neighbours
+		config["samples_neighbour_outdir"] + "/{SPECIES}_sample_neighbour.txt",
+		# The species homolog neighbours
+		config["samples_neighbour_outdir"] + "/{SPECIES}_homology_sample_neighbour.txt"
+	params:
+		out_dir = config["samples_neighbour_outdir"],
+		n_samples = config["samples_per_species"],
+		n_species = config["num_homolog_species"],
+		sp_names = config["sp_names"],
+		dist_matrix = config["dist_matrix"]
+	shell:
+		"""
+		python scripts/sample_gene.py --homo {input.homology_database} --out {params.out_dir} \
+		--species {wildcards.SPECIES} --n_samples {params.n_samples} --n_species {params.n_species} \
+		--sp_names {params.sp_names}  --dist_matrix {params.dist_matrix} --neighbours{input.neighbourhood_json}
+		"""
+
 
 
 

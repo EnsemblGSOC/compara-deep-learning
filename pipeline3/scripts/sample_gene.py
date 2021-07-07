@@ -104,7 +104,7 @@ with open(args.neigbours) as f:
 neighbour_genes = dict(
     zip(samples_df.gene_stable_id, samples_df.gene_stable_id.map(neighbour_map))
 )
-with open(args.out + "/" + species + "_neighbour.txt", "w") as json_file:
+with open(args.out + "/" + species + "_sample_neighbour.txt", "w") as json_file:
     json.dump(neighbour_genes, json_file)
 
 # read in the list of paths to homology species
@@ -134,6 +134,8 @@ for species in query_species:
     homology_neighour_dicts.update(homology_neighbour_genes)
 
 
-with open(args.out + "/" + species + "_homology_neighbour.txt", "w") as json_file:
+with open(
+    args.out + "/" + species + "_homology_sample_neighbour.txt", "w"
+) as json_file:
     json.dump(homology_neighour_dicts, json_file)
 
