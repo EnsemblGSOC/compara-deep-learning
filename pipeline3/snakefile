@@ -32,7 +32,7 @@ rule select_longest:
 
 rule Diamond_alignment:
 	input:
-		pep_path_map
+		"/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Longest_Gene_Fasta/{SPECIES}_longest_pep.fa"
 	output:
 		"/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Diamond/Alignments/{SPECIES}.outs.tsv"
 	params:
