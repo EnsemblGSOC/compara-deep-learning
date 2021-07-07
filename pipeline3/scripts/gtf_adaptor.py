@@ -8,7 +8,7 @@ class GTFAdaptor:
         self.genes = {}
 
     def load_genes(self, btype=""):
-        with gzip.open(fileName, "rt") as file_handler:
+        with gzip.open(self.file, "rt") as file_handler:
             # with open(self.file) as file_handler:
             i = 0
             for line in file_handler:
