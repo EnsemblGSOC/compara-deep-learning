@@ -9,8 +9,8 @@ pep_paths = pd.Series(np.loadtxt("config/peptide_paths.txt", dtype="str"))
 
 rule all:
 	input:
-		# expand("/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Diamond/Alignments/{SPECIES}.outs.tsv", SPECIES = species),
-		expand("/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Longest_Gene_Fasta/{SPECIES}_longest_pep.fa",  SPECIES = species[:5])
+		expand("/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Diamond/Alignments/{SPECIES}.outs.tsv", SPECIES = species),
+		expand("/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Longest_Gene_Fasta/{SPECIES}_longest_pep.fa",  SPECIES = species)
 
 
 # function to map the species to the path of the peptide fasta file
