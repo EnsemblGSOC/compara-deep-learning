@@ -1,4 +1,3 @@
-
 from typing import List, Dict
 import sys
 import argparse
@@ -8,8 +7,8 @@ from gtf_adaptor import GTFAdaptor
 
 
 def fetchNeighbourDictionary(fileName: str, nbNghbr: int) -> Dict:
-    '''
-    '''
+    """
+    """
 
     gtf_adaptor = GTFAdaptor(fileName)
     gtf_adaptor.load_genes("protein_coding")
@@ -35,11 +34,11 @@ def fetchNeighbourDictionary(fileName: str, nbNghbr: int) -> Dict:
 
 
 def listGtfFiles(directory: str) -> List:
-    gtf_files= []
+    gtf_files = []
     fileNames = os.listdir(directory)
     for fileName in fileNames:
         if fileName[-4:] == ".gtf":
-            gtf_files.append(directory+"/"+fileName)
+            gtf_files.append(directory + "/" + fileName)
     return gtf_files
 
 
@@ -55,26 +54,33 @@ def main(args):
 
     # fetch neighbor in all gtf of the list
     for gtfFiles in gtfFiles:
-        print ("fetch neighbours in " + gtfFiles)
+        print("fetch neighbours in " + gtfFiles)
         neighbours = fetchNeighbourDictionary(gtfFiles, nbNghbr)
         neighbourFile = outPrefix + "/" + gtfFiles.split("/")[-1][:-4] + ".json"
         with open(neighbourFile, "w") as file_handler:
             file_handler.write(json.dumps(neighbours))
 
+
 ########################################################################################################################
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--gtf', help='gtf annotation file' , default="")
-parser.add_argument('--dir', help='directory all gtf annotation file', default="")
-parser.add_argument('--nb_neighbours', type=int, help='nb of neighbour gene to bve retrieved')
-parser.add_argument('--out_prefix',  help='outfile with the neighbour information', default=".")
+parser.add_argument("--gtf", help="gtf annotation file", default="")
+parser.add_argument("--dir", help="directory all gtf annotation file", default="")
+parser.add_argument(
+    "--nb_neighbours", type=int, help="nb of neighbour gene to bve retrieved"
+)
+parser.add_argument(
+    "--out_prefix", help="outfile with the neighbour information", default="."
+)
 args = parser.parse_args()
 
 if args.gtf == "" and args.dir == "":
-    print ("--gtf or --dir need to be set. Currently none of them are set")
+    print("--gtf or --dir need to be set. Currently none of them are set")
     sys.exit()
 if args.gtf != "" and args.dir != "":
-    print(" --gtf and --dir are both exclusive so you cannot have them set on the same time")
+    print(
+        " --gtf and --dir are both exclusive so you cannot have them set on the same time"
+    )
     sys.exit()
 
 main(args)
