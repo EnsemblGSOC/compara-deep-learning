@@ -28,7 +28,7 @@ rule select_longest:
 		memory = 8000
 	shell:
 		"""
-		python  GeneReferencePetpideSelection.py --seq {input} --out_fasta {output}
+		python  scripts/GeneReferencePetpideSelection.py --seq {input} --out_fasta {output}
 		"""
 
 rule Diamond_alignment:
