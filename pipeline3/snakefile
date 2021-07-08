@@ -13,9 +13,9 @@ gtf_paths =  pd.Series(np.loadtxt("config/gtf_paths.txt", dtype="str"))
 
 rule all:
 	input:
-		expand("/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Diamond/Alignments/{SPECIES}.outs.tsv", SPECIES = species),
-		expand("/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Longest_Gene_Fasta/{SPECIES}_longest_pep.fa",  SPECIES = species)
-
+		# expand("/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Diamond/Alignments/{SPECIES}.outs.tsv", SPECIES = species),
+		# expand("/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Longest_Gene_Fasta/{SPECIES}_longest_pep.fa",  SPECIES = species)
+		expand(config["samples_neighbour_outdir"] + "/{SPECIES}_homology_sample_neighbour.txt", SPECIES = species[:3] )
 
 # function to map the species to the path of the peptide fasta file
 def pep_path_map(wildcards):
@@ -45,6 +45,7 @@ rule Diamond_alignment:
 	threads:
 		16
 	resources:
+		reports_path = config["cluster_out_base_path"] + "/Diamond_alignment/",
 		memory = 20000, # LFS memory in MBs
 		blocks = 2 # Diamond requires memory ~ blocks * 6Gb
 	shell:
@@ -67,14 +68,20 @@ rule species_neighbour:
 	input:
 		gtf_path_map
 	output:
-		neighbour_path_map
+		config["species_neighbour_outdir"] + "/{SPECIES}_all_neighbours.json"
 	params:
 		num_neighbours = config["num_neighbours"],
 		out_dir = config["species_neighbour_outdir"]
+	threads:
+		2
+	resources:
+		reports_path = config["cluster_out_base_path"] + "/species_neighbour/",
+		memory = 2000
 	shell:
 		"""
 		python scripts/geneNeighbourFormater.py --gtf {input} \
-		--nb_neighbours {params.num_neighbours} --out_prefix {params.out_dir}
+		--nb_neighbours {params.num_neighbours} --out_prefix {params.out_dir} \
+		--species {wildcards.SPECIES}
 		"""
 
 def homo_path_map(wildcards):
@@ -82,8 +89,8 @@ def homo_path_map(wildcards):
 
 rule select_samples:
 	input:
-		neighbourhood_json = neighbour_path_map,
-		homology_database = homo_path_map
+		neighbourhood_json = config["species_neighbour_outdir"] + "/{SPECIES}_all_neighbours.json"
+		# homology_database = homo_path_map
 	output:
 		# The species neighbours
 		config["samples_neighbour_outdir"] + "/{SPECIES}_sample_neighbour.txt",
@@ -95,6 +102,12 @@ rule select_samples:
 		n_species = config["num_homolog_species"],
 		sp_names = config["sp_names"],
 		dist_matrix = config["dist_matrix"]
+	threads:
+		2
+	resources:
+		reports_path = config["cluster_out_base_path"] + "/select_samples/",
+		memory = 4000, # LFS memory in MBs
+		# Diamond requires memory ~ blocks * 6Gb
 	shell:
 		"""
 		python scripts/sample_gene.py --homo {input.homology_database} --out {params.out_dir} \
