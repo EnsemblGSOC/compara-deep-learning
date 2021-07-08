@@ -69,7 +69,7 @@ rule species_neighbour:
 	output:
 		neighbour_path_map
 	params:
-		num_neighbours = config["num_neighbours"]
+		num_neighbours = config["num_neighbours"],
 		out_dir = config["species_neighbour_outdir"]
 	shell:
 		"""
