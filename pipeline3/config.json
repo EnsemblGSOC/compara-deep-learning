@@ -1,7 +1,13 @@
 {   
     "num_neighbours":3,
-    "neighbour_outdir":"/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Neighbours",
+    "species_neighbour_outdir":"/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Species_Neighbours",
     "Longest_pep_fasta_path":"/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Longest_Gene_Fasta",
     "Diamond_alinments_path":"/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Diamond/Alignments",
-    "Diamond_Pfam_db_path":"/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Diamond/Pfam-A"
+    "Diamond_Pfam_db_path":"/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Diamond/Pfam-A",
+    "samples_neighbour_outdir":"/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Sample_Neighbours",
+    "samples_per_species":500,
+    "num_homolog_species": 10,
+    "sp_names":"scripts/sp_names",
+    "dist_matrix":"scripts/dist_matrix"
+
 }
