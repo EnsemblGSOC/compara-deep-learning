@@ -39,12 +39,22 @@ sp_names = np.loadtxt(args.sp_names, dtype="str")
 distance = np.loadtxt(args.dist_matrix, delimiter="\t")
 distance_df = pd.DataFrame(distance, index=sp_names, columns=sp_names)
 
+# read in the homology database
+homology = pd.read_csv(args.homo, compression="gzip", delimiter="\t")
+
 # read in the available species
 print(args.avail_species, os.getcwd())
-available_species = np.loadtxt("config/database_species_intersection.txt", dtype="str")
+available_species = np.loadtxt("config/species_list.txt", dtype="str")
+
+# Select samples only from available lists
+intersection_species = list(set(sp_names) & set(homology.homology_species.drop_duplicates()) & set(available_species))
 
 # reduce the species distance matrix to consider only species with available data
-distance_df = distance_df[available_species].loc[available_species]
+distance_df = distance_df[intersection_species].loc[intersection_species]
+
+# reduce the homology database to only contain those species which are available
+homology = homology[ homology.homology_species.isin(intersection_species)]
+
 
 """
 Selection rule for sampling from different species based on distance.
@@ -68,8 +78,7 @@ Eg, we read in human database, and get homologous pairs of genes beween
 genes and the species we selected above
 """
 
-# read in the homology database
-homology = pd.read_csv(args.homo, compression="gzip", delimiter="\t")
+
 # map the homology types to the simpler ortho, para, gene split classes
 homo_type_map = {
     i: j
@@ -134,8 +143,8 @@ for species in query_species:
             species_samples.homology_gene_stable_id.map(homology_neighbour_map),
         )
     )
-    print(species)
-    print(species_samples.homology_gene_stable_id)
+    print("species: " + species)
+
     # append to the homology_neighbours dict
     homology_neighbour_dict.update(homology_neighbour_genes)
 
