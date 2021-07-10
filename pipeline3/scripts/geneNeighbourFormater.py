@@ -27,9 +27,9 @@ def fetchNeighbourDictionary(fileName: str, nbNghbr: int) -> Dict:
                 down_gene_id.append("NA")
             else:
                 down_gene_id.append(gene["stable_id"])
-        results[geneId] = {}
-        results[geneId]["upstream"] = up_gene_id
-        results[geneId]["downstream"] = down_gene_id
+        results[geneId] = [up_gene_id, down_gene_id]
+        # results[geneId]["upstream"] = up_gene_id
+        # results[geneId]["downstream"] = down_gene_id
     return results
 
 
@@ -57,7 +57,7 @@ def main(args):
         print("fetch neighbours in " + gtfFiles)
         neighbours = fetchNeighbourDictionary(gtfFiles, nbNghbr)
         neighbourFile = (
-            outPrefix + "/" + gtfFiles.split("/")[-1].split(".gtf")[0] + ".json"
+            outPrefix + "/" + args.species + "_all_neighbours.json"
         )
         with open(neighbourFile, "w") as file_handler:
             file_handler.write(json.dumps(neighbours))
@@ -70,6 +70,9 @@ parser.add_argument("--gtf", help="gtf annotation file", default="")
 parser.add_argument("--dir", help="directory all gtf annotation file", default="")
 parser.add_argument(
     "--nb_neighbours", type=int, help="nb of neighbour gene to bve retrieved"
+)
+parser.add_argument(
+    "--species", type=str, help="Species name of homology db being processed"
 )
 parser.add_argument(
     "--out_prefix", help="outfile with the neighbour information", default="."

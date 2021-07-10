@@ -89,8 +89,8 @@ def homo_path_map(wildcards):
 
 rule select_samples:
 	input:
-		neighbourhood_json = config["species_neighbour_outdir"] + "/{SPECIES}_all_neighbours.json"
-		# homology_database = homo_path_map
+		neighbourhood_json = config["species_neighbour_outdir"] + "/{SPECIES}_all_neighbours.json",
+		homology_database = homo_path_map
 	output:
 		# The species neighbours
 		config["samples_neighbour_outdir"] + "/{SPECIES}_sample_neighbour.txt",
@@ -110,9 +110,11 @@ rule select_samples:
 		# Diamond requires memory ~ blocks * 6Gb
 	shell:
 		"""
+		mkdir -p {params.out_dir}
+
 		python scripts/sample_gene.py --homo {input.homology_database} --out {params.out_dir} \
 		--species {wildcards.SPECIES} --n_samples {params.n_samples} --n_species {params.n_species} \
-		--sp_names {params.sp_names}  --dist_matrix {params.dist_matrix} --neighbours{input.neighbourhood_json}
+		--sp_names {params.sp_names}  --dist_matrix {params.dist_matrix} --neighbours {input.neighbourhood_json}
 		"""
 
 
