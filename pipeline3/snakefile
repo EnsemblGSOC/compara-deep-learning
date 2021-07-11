@@ -5,17 +5,19 @@ import pandas as pd
 configfile:
     "config.json"
 
-
-species = np.loadtxt("config/database_species_intersection.txt", dtype="str")
+# sp_path = "database_species_intersection.txt"
+sp_path = "species_list.txt"
+species = np.loadtxt("config/" + sp_path, dtype="str")
 pep_paths = pd.Series(np.loadtxt("config/peptide_paths.txt", dtype="str"))
 homo_paths = pd.Series(np.loadtxt("config/homology_database_paths.txt", dtype="str"))
 gtf_paths =  pd.Series(np.loadtxt("config/gtf_paths.txt", dtype="str"))
 
 rule all:
 	input:
-		# expand("/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Diamond/Alignments/{SPECIES}.outs.tsv", SPECIES = species),
-		# expand("/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Longest_Gene_Fasta/{SPECIES}_longest_pep.fa",  SPECIES = species)
-		expand(config["samples_neighbour_outdir"] + "/{SPECIES}_homology_sample_neighbour.txt", SPECIES = species[:3] )
+		# expand("/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Diamond/Alignments/{SPECIES}.outs.tsv", SPECIES = species[:5])
+		# expand("/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Longest_Gene_Fasta/{SPECIES}_longest_pep.fa",  SPECIES = species),
+		# expand(config["species_neighbour_outdir"] + "/{SPECIES}_all_neighbours.json", SPECIES = species )
+		expand(config["out_dir"] + "/synteny_matrices/{SPECIES}_global2.txt", SPECIES = species[-1] )
 
 # function to map the species to the path of the peptide fasta file
 def pep_path_map(wildcards):
@@ -29,7 +31,8 @@ rule select_longest:
 	threads:
 		4
 	resources:
-		memory = 8000
+		memory = 8000,
+		reports_path = config["cluster_out_base_path"] + "/select_longest/"
 	shell:
 		"""
 		python  scripts/GeneReferencePetpideSelection.py --seq {input} --out_fasta {output}
@@ -46,7 +49,7 @@ rule Diamond_alignment:
 		16
 	resources:
 		reports_path = config["cluster_out_base_path"] + "/Diamond_alignment/",
-		memory = 20000, # LFS memory in MBs
+		memory = 10000, # LFS memory in MBs
 		blocks = 2 # Diamond requires memory ~ blocks * 6Gb
 	shell:
 		"""
@@ -79,6 +82,7 @@ rule species_neighbour:
 		memory = 2000
 	shell:
 		"""
+		mkdir -p {params.out_dir}
 		python scripts/geneNeighbourFormater.py --gtf {input} \
 		--nb_neighbours {params.num_neighbours} --out_prefix {params.out_dir} \
 		--species {wildcards.SPECIES}
@@ -89,24 +93,25 @@ def homo_path_map(wildcards):
 
 rule select_samples:
 	input:
-		neighbourhood_json = config["species_neighbour_outdir"] + "/{SPECIES}_all_neighbours.json",
+		config["species_neighbour_outdir"] + "/{SPECIES}_all_neighbours.json",
 		homology_database = homo_path_map
 	output:
 		# The species neighbours
-		config["samples_neighbour_outdir"] + "/{SPECIES}_sample_neighbour.txt",
+		config["samples_neighbour_outdir"] + "/{SPECIES}_sample_neighbour.json",
 		# The species homolog neighbours
-		config["samples_neighbour_outdir"] + "/{SPECIES}_homology_sample_neighbour.txt"
+		config["samples_neighbour_outdir"] + "/{SPECIES}_homology_sample_neighbour.json"
 	params:
 		out_dir = config["samples_neighbour_outdir"],
 		n_samples = config["samples_per_species"],
 		n_species = config["num_homolog_species"],
 		sp_names = config["sp_names"],
-		dist_matrix = config["dist_matrix"]
+		dist_matrix = config["dist_matrix"],
+		neighbour_dir = config["species_neighbour_outdir"]
 	threads:
 		2
 	resources:
 		reports_path = config["cluster_out_base_path"] + "/select_samples/",
-		memory = 4000, # LFS memory in MBs
+		memory = 1000 # LFS memory in MBs
 		# Diamond requires memory ~ blocks * 6Gb
 	shell:
 		"""
@@ -114,10 +119,36 @@ rule select_samples:
 
 		python scripts/sample_gene.py --homo {input.homology_database} --out {params.out_dir} \
 		--species {wildcards.SPECIES} --n_samples {params.n_samples} --n_species {params.n_species} \
-		--sp_names {params.sp_names}  --dist_matrix {params.dist_matrix} --neighbours {input.neighbourhood_json}
+		--sp_names {params.sp_names}  --dist_matrix {params.dist_matrix} --neighbours {params.neighbour_dir}
 		"""
 
 
+rule synteny_matrix:
+	input:
+		# The species neighbours
+		config["samples_neighbour_outdir"] + "/{SPECIES}_sample_neighbour.json",
+		# The species homolog neighbours
+		config["samples_neighbour_outdir"] + "/{SPECIES}_homology_sample_neighbour.json"
+	output:
+		config["out_dir"] + "/synteny_matrices/{SPECIES}_global1.txt",
+		config["out_dir"] + "/synteny_matrices/{SPECIES}_global2.txt"
+		# config["out_dir"] + "/synteny/" + species + "_local1.txt",
+		# config["out_dir"] + "/synteny/" + species + "_local2.txt"
+	params:
+		out_dir = config["out_dir"] + "/synteny_matrices",
+		samples_dir = config["samples_neighbour_outdir"],
+		longest_fasta_dir = config["Longest_pep_fasta_path"]
+	threads:
+		2
+	resources:
+		reports_path = config["cluster_out_base_path"] + "/synteny_matrices/",
+		memory = 500
+	shell:
+		"""
+		mkdir -p {params.out_dir}
+		python scripts/synteny_matrix.py --species {wildcards.SPECIES} --samples_dir {params.samples_dir} \
+		--longest_fasta_dir {params.longest_fasta_dir} --out_dir {params.out_dir}
+		"""
 
 
 
