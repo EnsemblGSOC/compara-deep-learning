@@ -1,5 +1,4 @@
-from skbio import Protein
-from skbio.alignment import local_pairwise_align_protein, global_pairwise_align_protein
+from skbio.alignment import StripedSmithWaterman
 from Bio import SeqIO
 import json
 import pandas as pd
@@ -95,10 +94,9 @@ for i,j,k in progressbar.progressbar(np.ndindex((seq_array1.shape[0],7,7))):
         norm = max(len(seq_array1[i,j]),len(seq_array2[i,k]))
         global1[i,j,k] = ed.align(seq_array1[i,j], seq_array2[i,k], mode="NW", task="distance")["editDistance"] / norm
         global2[i,j,k] = ed.align(seq_array1[i,j], seq_array2[i,k][::-1], mode="NW", task="distance")["editDistance"] / norm
-        _,result,_ = local_pairwise_align_protein(Protein(seq_array1[i,j]), Protein(seq_array2[i,k]))
-        local1[i,j,k] = result/norm
-        _,result,_ = local_pairwise_align_protein(Protein(seq_array1[i,j]), Protein(seq_array2[i,k])[::-1])
-        local2[i,j,k] = result/norm
+        query = StripedSmithWaterman(seq_array1[i,j])
+        local1[i,j,k] = query(seq_array2[i,k])["optimal_alignment_score"]/norm
+        local2[i,j,k] = query(seq_array2[i,k][::-1])["optimal_alignment_score"]/norm
 
 global1 = np.array(global1).reshape(seq_array1.shape[0],-1)
 global2 = np.array(global2).reshape(seq_array1.shape[0],-1)
