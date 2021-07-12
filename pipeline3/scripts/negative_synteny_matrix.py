@@ -31,13 +31,13 @@ args = parser.parse_args()
 
 
 
-samples_df = pd.read_csv(args.samples_dir + "/" + args.species + "_samples_pairs.csv")
+samples_df = pd.read_csv(args.samples_dir + "/" + args.species + "_negative_samples_pairs.csv")
 
 # read in the samples for both the species and the candidate homologies
-with open( args.samples_dir + "/" + args.species + "_sample_neighbour.json","r") as f:
+with open( args.samples_dir + "/" + args.species + "_negative_sample_neighbour.json","r") as f:
     sample_neighbours = json.load(f)
     
-with open( args.samples_dir + "/" + args.species + "_homology_sample_neighbour.json","r") as f:
+with open( args.samples_dir + "/" + args.species + "_negative_homology_sample_neighbour.json","r") as f:
     sample_homology_neighbours = json.load(f)
 
 gene_series = samples_df.gene_stable_id.map(sample_neighbours)
@@ -45,10 +45,10 @@ gene_series[gene_series.isna()] = gene_series[gene_series.isna()].apply(lambda x
 array1 = np.concatenate(gene_series.apply( np.array ).values ).reshape((-1,6))
 array1 = np.concatenate((samples_df.gene_stable_id.values[:,np.newaxis], array1), axis=1).reshape(1,-1)
 
-gene_series = samples_df.homology_gene_stable_id.map(sample_homology_neighbours)
+gene_series = samples_df.non_homo_gene_stable_id.map(sample_homology_neighbours)
 gene_series[gene_series.isna()] = gene_series[gene_series.isna()].apply(lambda x: [[0,0,0],[0,0,0]]) # fill the null values
 array2 = np.concatenate(gene_series.apply( np.array ).values ).reshape((-1,6))
-array2 = np.concatenate((samples_df.homology_gene_stable_id.values[:,np.newaxis], array2), axis=1).ravel()
+array2 = np.concatenate((samples_df.non_homo_gene_stable_id.values[:,np.newaxis], array2), axis=1).ravel()
 
 # read in the first fasta file
 fasta_sequences = SeqIO.parse(open(args.longest_fasta_dir + "/" + args.species + "_longest_pep.fa"),'fasta')
@@ -58,10 +58,10 @@ for row in fasta_sequences:
 
 sequences1 = pd.Series(array1[0]).map(seq_map)
 
-indices = np.repeat(samples_df.homology_species.values, 7)
+indices = np.repeat(samples_df.non_homo_species.values, 7)
 
 
-for query_species in samples_df.homology_species.drop_duplicates():
+for query_species in samples_df.non_homo_species.drop_duplicates():
     gene_series = pd.Series(array2[indices == query_species])
 
     # read in the fasta file
@@ -73,7 +73,6 @@ for query_species in samples_df.homology_species.drop_duplicates():
     indices[indices == query_species] = gene_series.map(seq_map).values
 
 sequences2 = pd.Series(indices)
-
 
 seq_array1 = sequences1.values.reshape(-1,7)
 
@@ -99,22 +98,18 @@ for i,j,k in progressbar.progressbar(np.ndindex((seq_array1.shape[0],7,7))):
         local1[i,j,k] = result/norm
         _,result,_ = local_pairwise_align_protein(Protein(seq_array1[i,j]), Protein(seq_array2[i,k])[::-1])
         local2[i,j,k] = result/norm
+        
 
 global1 = np.array(global1).reshape(seq_array1.shape[0],-1)
 global2 = np.array(global2).reshape(seq_array1.shape[0],-1)
 local1 = np.array(local1).reshape(seq_array1.shape[0],-1)
 local2 = np.array(local2).reshape(seq_array1.shape[0],-1)
 
-
-np.savetxt(args.out_dir + "/" + args.species + "_global1.txt", global1, fmt="%s")
-np.savetxt(args.out_dir + "/" + args.species + "_global2.txt", global2, fmt="%s")
-np.savetxt(args.out_dir + "/" + args.species + "_local1.txt", local1, fmt="%s")
-np.savetxt(args.out_dir + "/" + args.species + "_local2.txt", local2, fmt="%s")
-
-"""
-Extinct code from earlier work, but saved if needed
-"""
-## perform the pairwise alignments
+np.savetxt(args.out_dir + "/" + args.species + "_negative_global1.txt", global1, fmt="%s")
+np.savetxt(args.out_dir + "/" + args.species + "_negative_global2.txt", global2, fmt="%s")
+np.savetxt(args.out_dir + "/" + args.species + "_negative_local1.txt", local1, fmt="%s")
+np.savetxt(args.out_dir + "/" + args.species + "_negative_local2.txt", local2, fmt="%s")
+# ## perform the pairwise alignments
 
 # # perform local alignments and reciprocal alignment
 # local1 = [] # forward alignments
@@ -149,3 +144,8 @@ Extinct code from earlier work, but saved if needed
 # global2 = np.array(global2).reshape(-1,7)
 # # local1 = np.array(local1).reshape(-1,7)
 # # local2 = np.array(local2).reshape(-1,7)
+
+# np.savetxt(args.out_dir + "/" + args.species + "_negative_global1.txt", global1, fmt="%s")
+# np.savetxt(args.out_dir + "/" + args.species + "_negative_global2.txt", global2, fmt="%s")
+# np.savetxt(args.out_dir + "/" + args.species + "_negative_local1.txt", local1, fmt="%s")
+# np.savetxt(args.out_dir + "/" + args.species + "_negative_local2.txt", local2, fmt="%s")
