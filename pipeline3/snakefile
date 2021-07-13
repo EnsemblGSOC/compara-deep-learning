@@ -6,7 +6,7 @@ configfile:
     "config.json"
 
 # sp_path = "database_species_intersection.txt"
-sp_path = "species_list.txt"
+sp_path = "species_list2.txt"
 species = np.loadtxt("config/" + sp_path, dtype="str")
 pep_paths = pd.Series(np.loadtxt("config/peptide_paths.txt", dtype="str"))
 homo_paths = pd.Series(np.loadtxt("config/homology_database_paths.txt", dtype="str"))
@@ -17,8 +17,11 @@ rule all:
 		# expand("/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Diamond/Alignments/{SPECIES}.outs.tsv", SPECIES = species[:5])
 		# expand("/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Longest_Gene_Fasta/{SPECIES}_longest_pep.fa",  SPECIES = species),
 		# expand(config["species_neighbour_outdir"] + "/{SPECIES}_all_neighbours.json", SPECIES = species )
-		expand(config["out_dir"] + "/synteny_matrices/{SPECIES}_global2.txt", SPECIES = species[-1] )
-
+		#expand(config["out_dir"] + "/synteny_matrices/{SPECIES}_global2.txt", SPECIES = species[-1] ),
+		expand(config["out_dir"] + "/Pfam_matrices/{SPECIES}_Pfam.txt", SPECIES = species )
+		#expand(config["samples_neighbour_outdir"] + "/{SPECIES}_negative_homology_sample_neighbour.json", SPECIES=species[4])
+		# expand(config["out_dir"] + "/synteny_matrices/{SPECIES}_global2.txt", SPECIES = species),
+		# expand(config["out_dir"] + "/negative_synteny_matrices/{SPECIES}_negative_global2.txt", SPECIES = species)
 # function to map the species to the path of the peptide fasta file
 def pep_path_map(wildcards):
 	return pep_paths[pep_paths.str.contains(wildcards.SPECIES)].values[0]
@@ -99,7 +102,11 @@ rule select_samples:
 		# The species neighbours
 		config["samples_neighbour_outdir"] + "/{SPECIES}_sample_neighbour.json",
 		# The species homolog neighbours
-		config["samples_neighbour_outdir"] + "/{SPECIES}_homology_sample_neighbour.json"
+		config["samples_neighbour_outdir"] + "/{SPECIES}_homology_sample_neighbour.json",
+		# The species neighbours
+		config["samples_neighbour_outdir"] + "/{SPECIES}_negative_sample_neighbour.json",
+		# The species homolog neighbours
+		config["samples_neighbour_outdir"] + "/{SPECIES}_negative_homology_sample_neighbour.json"		
 	params:
 		out_dir = config["samples_neighbour_outdir"],
 		n_samples = config["samples_per_species"],
@@ -123,6 +130,8 @@ rule select_samples:
 		"""
 
 
+
+
 rule synteny_matrix:
 	input:
 		# The species neighbours
@@ -132,8 +141,8 @@ rule synteny_matrix:
 	output:
 		config["out_dir"] + "/synteny_matrices/{SPECIES}_global1.txt",
 		config["out_dir"] + "/synteny_matrices/{SPECIES}_global2.txt"
-		# config["out_dir"] + "/synteny/" + species + "_local1.txt",
-		# config["out_dir"] + "/synteny/" + species + "_local2.txt"
+		# config["out_dir"] + "/synteny_matrices/{SPECIES}_local1.txt",
+		# config["out_dir"] + "/synteny_matrices/{SPECIES}_local2.txt"
 	params:
 		out_dir = config["out_dir"] + "/synteny_matrices",
 		samples_dir = config["samples_neighbour_outdir"],
@@ -150,7 +159,59 @@ rule synteny_matrix:
 		--longest_fasta_dir {params.longest_fasta_dir} --out_dir {params.out_dir}
 		"""
 
+rule negative_synteny_matrix:
+	input:
+		# The species neighbours
+		config["samples_neighbour_outdir"] + "/{SPECIES}_negative_sample_neighbour.json",
+		# The species homolog neighbours
+		config["samples_neighbour_outdir"] + "/{SPECIES}_negative_homology_sample_neighbour.json"
+	output:
+		config["out_dir"] + "/negative_synteny_matrices/{SPECIES}_negative_global1.txt",
+		config["out_dir"] + "/negative_synteny_matrices/{SPECIES}_negative_global2.txt"
+		# config["out_dir"] + "/negative_synteny_matrices/{SPECIES}_negative_local1.txt",
+		# config["out_dir"] + "/negative_synteny_matrices/{SPECIES}_negative_local2.txt"
+	params:
+		out_dir = config["out_dir"] + "/negative_synteny_matrices",
+		samples_dir = config["samples_neighbour_outdir"],
+		longest_fasta_dir = config["Longest_pep_fasta_path"]
+	threads:
+		2
+	resources:
+		reports_path = config["cluster_out_base_path"] + "/negative_synteny_matrices/",
+		memory = 500
+	shell:
+		"""
+		mkdir -p {params.out_dir}
+		python scripts/negative_synteny_matrix.py --species {wildcards.SPECIES} --samples_dir {params.samples_dir} \
+		--longest_fasta_dir {params.longest_fasta_dir} --out_dir {params.out_dir}
+		"""
 
+rule pfam_matrix:
+	input:
+		# The species neighbours
+		config["samples_neighbour_outdir"] + "/{SPECIES}_sample_neighbour.json",
+		# The species homolog neighbours
+		config["samples_neighbour_outdir"] + "/{SPECIES}_homology_sample_neighbour.json",
+		config["Diamond_alinments_path"] + "/{SPECIES}.outs.tsv"
+	output:
+		config["out_dir"] + "/Pfam_matrices/{SPECIES}_Pfam.txt"		
+		# config["out_dir"] + "/synteny/" + species + "_local1.txt",
+		# config["out_dir"] + "/synteny/" + species + "_local2.txt"
+	params:
+		out_dir = config["out_dir"] + "/Pfam_matrices",
+		samples_dir = config["samples_neighbour_outdir"],
+		Pfam_dir = config["Diamond_alinments_path"]
+	threads:
+		4
+	resources:
+		reports_path = config["cluster_out_base_path"] + "/Pfam_matrices/",
+		memory = 8000
+	shell:
+		"""
+		mkdir -p {params.out_dir}
+		python scripts/Pfam_matrix.py --species {wildcards.SPECIES} --samples_dir {params.samples_dir} \
+		--Pfam_dir {params.Pfam_dir} --out_dir {params.out_dir}
+		"""
 
 # cds_links = pd.Series(np.loadtxt("download_links/seq_intersect_link.txt", dtype="str"))
 # # Get the expected list of seq output files
