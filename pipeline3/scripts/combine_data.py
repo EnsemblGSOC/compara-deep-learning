@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 import glob
-from datetime import date
 import argparse
+import os
 
 parser = argparse.ArgumentParser()
 parser.add_argument( 
@@ -26,7 +26,11 @@ parser.add_argument(
 
 parser.add_argument( 
     "--out_dir",
-    help="output directory for syneny matrices",
+    help="output directory for finalised dataset",
+)
+parser.add_argument( 
+    "--date",
+    help="Used to name the output file",
 )
 args = parser.parse_args()
 
@@ -53,6 +57,10 @@ for species in species_list:
     pos_paths = args.synt + "/" + species + "_" + files + ".txt"
     # correct the paths for the pfam matrices
     pos_paths[pos_paths.str.contains("Pfam")] = pos_paths[pos_paths.str.contains("Pfam")].str.replace(args.synt,args.Pfam_dir )
+    # if not os.path.isfile(pos_paths.iloc[-1]):
+    #     print(species + " has missing pfam!")
+    #     continue
+
     pos_data = []
     for path in pos_paths:
         pos_data.append(np.loadtxt(path).reshape(-1,7,7)[:,:,:,np.newaxis])
@@ -94,7 +102,5 @@ for species in species_list:
 big_dataframe = pd.concat(all_dataframes)
 big_data = np.concatenate(all_matrices, axis=0)
 
-date = date.today().strftime("%b-%d-%Y")
-
-dataframe.to_csv(args.out_dir + "/" + date + " _big_final.csv")
-np.save(args.out_dir + "/" + date + " _big_final.npy",data)
+big_dataframe.to_csv(args.out_dir + "/" + args.date + "_big_final.csv")
+np.save(args.out_dir + "/" + args.date + "_big_final.npy",big_data)

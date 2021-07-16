@@ -103,14 +103,14 @@ num_ortho_sub_samples = int(args.n_samples / (args.n_species * 2)) # factor 1/2 
 ortho_samples_df = (
     homology[homology.homology_species.isin(query_species) & (homology.ortho_para == "ortholog")]
     .groupby("homology_species")
-    .sample(num_ortho_sub_samples)
+    .sample(num_ortho_sub_samples, replace=True).drop_duplicates()
 )
 
 print(ortho_samples_df.shape[0])
 
 num_para_samples = ortho_samples_df.shape[0] # get the same number of paralogs as orthologs
 para_samples_df = (
-    homology[homology.ortho_para == "paralog"].sample(num_para_samples)
+    homology[homology.ortho_para == "paralog"].sample(num_para_samples, replace=True).drop_duplicates()
 )
 
 samples_df = pd.concat([ortho_samples_df,para_samples_df])
@@ -163,7 +163,7 @@ for species in pd.Series(query_species).append(pd.Series(args.species)):
     """
     temp_df = homology[homology.homology_species == species] # only look at the current species
     query_series = pd.Series(homology_neighbour_map.keys()) # get all genes from the query species
-    negative_samples = pd.Series(list(neighbour_map.keys())).sample(int(args.n_samples/2)) # sample them
+    negative_samples = pd.Series(list(neighbour_map.keys())).sample(int(num_ortho_sub_samples)) # sample them
     temp = negative_samples.to_frame("gene_stable_id")
     temp["species"] = species
     negs_main_species.append(temp)

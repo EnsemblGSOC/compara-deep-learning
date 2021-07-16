@@ -1,5 +1,8 @@
 import numpy as np
 import pandas as pd
+from datetime import date
+
+the_date = date.today().strftime("%b-%d-%Y")
 
 # get the list of species names for the homology databases
 configfile:
@@ -17,11 +20,14 @@ rule all:
 		# expand("/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Diamond/Alignments/{SPECIES}.outs.tsv", SPECIES = species[:5])
 		# expand("/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Longest_Gene_Fasta/{SPECIES}_longest_pep.fa",  SPECIES = species),
 		# expand(config["species_neighbour_outdir"] + "/{SPECIES}_all_neighbours.json", SPECIES = species )
-		#expand(config["out_dir"] + "/synteny_matrices/{SPECIES}_global2.txt", SPECIES = species[-1] ),
-		expand(config["out_dir"] + "/Pfam_matrices/{SPECIES}_Pfam.txt", SPECIES = species )
-		#expand(config["samples_neighbour_outdir"] + "/{SPECIES}_negative_homology_sample_neighbour.json", SPECIES=species[4])
+		#expand(config["out_dir"] + "/synteny_matrices/{SPECIES}_global2.txt", SPECIES = species[-5:] ),
+		# expand(config["out_dir"] + "/Pfam_matrices/{SPECIES}_Pfam.txt", SPECIES = species ),
+		# expand(config["out_dir"] + "/Pfam_matrices/{SPECIES}_negative_Pfam.txt", SPECIES = species ),
+		# expand(config["samples_neighbour_outdir"] + "/{SPECIES}_negative_homology_sample_neighbour.json", SPECIES=species)
 		# expand(config["out_dir"] + "/synteny_matrices/{SPECIES}_global2.txt", SPECIES = species),
 		# expand(config["out_dir"] + "/negative_synteny_matrices/{SPECIES}_negative_global2.txt", SPECIES = species)
+		config["out_dir"] + "/Final_data/" + the_date + "_big_final.csv"
+
 # function to map the species to the path of the peptide fasta file
 def pep_path_map(wildcards):
 	return pep_paths[pep_paths.str.contains(wildcards.SPECIES)].values[0]
@@ -202,16 +208,79 @@ rule pfam_matrix:
 		samples_dir = config["samples_neighbour_outdir"],
 		Pfam_dir = config["Diamond_alinments_path"]
 	threads:
-		4
+		6
 	resources:
 		reports_path = config["cluster_out_base_path"] + "/Pfam_matrices/",
+		memory = 20000
+	shell:
+		"""
+		mkdir -p {params.out_dir}
+		python scripts/Pfam_matrix_parallel.py --species {wildcards.SPECIES} --samples_dir {params.samples_dir} \
+		--Pfam_dir {params.Pfam_dir} --out_dir {params.out_dir} --threads {threads}
+		"""
+
+
+rule negative_pfam_matrix:
+	input:
+		# The species neighbours
+		config["samples_neighbour_outdir"] + "/{SPECIES}_negative_sample_neighbour.json",
+		# The species homolog neighbours
+		config["samples_neighbour_outdir"] + "/{SPECIES}_negative_homology_sample_neighbour.json",
+		config["Diamond_alinments_path"] + "/{SPECIES}.outs.tsv"
+	output:
+		config["out_dir"] + "/Pfam_matrices/{SPECIES}_negative_Pfam.txt"		
+		# config["out_dir"] + "/synteny/" + species + "_local1.txt",
+		# config["out_dir"] + "/synteny/" + species + "_local2.txt"
+	params:
+		out_dir = config["out_dir"] + "/Pfam_matrices",
+		samples_dir = config["samples_neighbour_outdir"],
+		Pfam_dir = config["Diamond_alinments_path"]
+	threads:
+		6
+	resources:
+		reports_path = config["cluster_out_base_path"] + "/negative_Pfam_matrices/",
+		memory = 20000
+	shell:
+		"""
+		mkdir -p {params.out_dir}
+		python scripts/negative_Pfam_matrix_parallel.py --species {wildcards.SPECIES} --samples_dir {params.samples_dir} \
+		--Pfam_dir {params.Pfam_dir} --out_dir {params.out_dir} --threads {threads}
+		"""
+
+the_date = date.today().strftime("%b-%d-%Y")
+
+rule format_data:
+	input:
+		expand(config["out_dir"] + "/Pfam_matrices/{SPECIES}_Pfam.txt", SPECIES=species),
+		expand(config["out_dir"] + "/Pfam_matrices/{SPECIES}_negative_Pfam.txt", SPECIES=species),
+		expand(config["out_dir"] + "/negative_synteny_matrices/{SPECIES}_negative_global1.txt", SPECIES=species),
+		expand(config["out_dir"] + "/negative_synteny_matrices/{SPECIES}_negative_global2.txt", SPECIES=species),
+		expand(config["out_dir"] + "/synteny_matrices/{SPECIES}_global1.txt", SPECIES=species),
+		expand(config["out_dir"] + "/synteny_matrices/{SPECIES}_global2.txt", SPECIES=species)
+	output:
+		config["out_dir"] + "/Final_data/" + the_date + "_big_final.npy",
+		config["out_dir"] + "/Final_data/" + the_date + "_big_final.csv"
+	params:
+		synt = config["out_dir"] + "/synteny_matrices",
+		neg_synt = config["out_dir"] + "/negative_synteny_matrices",
+		out_dir = config["out_dir"] + "/Final_data",
+		samples_dir = config["samples_neighbour_outdir"],
+		Pfam_dir = config["out_dir"] + "/Pfam_matrices",
+		date = the_date
+	threads:
+		2
+	resources:
+		reports_path = config["cluster_out_base_path"] + "/combine_data/",
 		memory = 8000
 	shell:
 		"""
 		mkdir -p {params.out_dir}
-		python scripts/Pfam_matrix.py --species {wildcards.SPECIES} --samples_dir {params.samples_dir} \
-		--Pfam_dir {params.Pfam_dir} --out_dir {params.out_dir}
+		python scripts/combine_data.py --samples_dir {params.samples_dir} --Pfam_dir {params.Pfam_dir} \
+		--synt {params.synt} --neg_synt {params.neg_synt} --out_dir {params.out_dir} --date {params.date}
 		"""
+
+
+
 
 # cds_links = pd.Series(np.loadtxt("download_links/seq_intersect_link.txt", dtype="str"))
 # # Get the expected list of seq output files
