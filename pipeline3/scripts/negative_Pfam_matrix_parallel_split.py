@@ -96,9 +96,9 @@ def overlap(tup):
     and the Diamond alignments both come from the longest_pep_fasta file
     """
     if (type(array1[i,j]) != str) or (type(array2[i,k]) != str):
-        return float("NaN")
+        return (float("NaN"),float("NaN"),float("NaN"))
     if (array1[i,j] == "NA") or (array2[i,k] == "NA"):
-        return "NA"
+        return ("NA","NA","NA")
     species = samples_df.iloc[i,:].species
     homology_species = samples_df.iloc[i,:].non_homo_species
     print(species, homology_species)
@@ -111,10 +111,10 @@ def overlap(tup):
     except:
         # NP denotes No Pfam
         print("error")
-        return "NP"
+        return ("NP","NP","NP")
     
     if (temp_df1.shape[0] == 0) or (temp_df2.shape[0] == 0):
-        return float("NaN")
+        return (float("NaN"),float("NaN"),float("NaN"))
         
     else:
         """
@@ -162,10 +162,14 @@ pfam_array3 = [ tup[2] for tup in pfam_list ]
 pfam_array1= np.array(pfam_array1).reshape((array1.shape[0],7,7))
 pfam_array2= np.array(pfam_array2).reshape((array1.shape[0],7,7))
 pfam_array3= np.array(pfam_array3).reshape((array1.shape[0],7,7))
+stacked_pfam = np.stack((pfam_array1,pfam_array2,pfam_array3), axis = -1)
+print(stacked_pfam.shape)
 
-np.savetxt(args.out_dir + "/" + args.species + "_negative_Pfam1.txt", pfam_array1.reshape((array1.shape[0],-1)), fmt="%s")
-np.savetxt(args.out_dir + "/" + args.species + "_negative_Pfam2.txt", pfam_array2.reshape((array1.shape[0],-1)), fmt="%s")
-np.savetxt(args.out_dir + "/" + args.species + "_negative_Pfam3.txt", pfam_array3.reshape((array1.shape[0],-1)), fmt="%s")
+np.save(args.out_dir + "/" + args.species + "_negative_Pfam.npy", stacked_pfam) # save the stacked pfam as an npy
+
+# np.savetxt(args.out_dir + "/" + args.species + "_negative_Pfam1.txt", pfam_array1.reshape((array1.shape[0],-1)), fmt="%s")
+# np.savetxt(args.out_dir + "/" + args.species + "_negative_Pfam2.txt", pfam_array2.reshape((array1.shape[0],-1)), fmt="%s")
+# np.savetxt(args.out_dir + "/" + args.species + "_negative_Pfam3.txt", pfam_array3.reshape((array1.shape[0],-1)), fmt="%s")
 
 #         return overlapped_pfams / total_pfams
 
