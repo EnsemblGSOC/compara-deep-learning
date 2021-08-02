@@ -74,14 +74,14 @@ for query_species in samples_df.homology_species.drop_duplicates():
 sequences2 = pd.Series(indices)
 
 
-seq_array1 = sequences1.values.reshape(-1,7)
+seq_array1 = sequences1.values.reshape(-1,7)[:,[1,2,3,0,4,5,6]] # Swap the orders to put the main genes centrally
 
-seq_array2 = sequences2.values.reshape(-1,7)
+seq_array2 = sequences2.values.reshape(-1,7)[:,[1,2,3,0,4,5,6]] # Swap the orders to put the main genes centrally
 
 global1 = np.zeros(shape=(seq_array1.shape[0],7,7))
 global2 = np.zeros(shape=(seq_array1.shape[0],7,7))
-local1 = np.zeros(shape=(seq_array1.shape[0],7,7))
-local2 = np.zeros(shape=(seq_array1.shape[0],7,7))
+local1 = np.zeros(shape=(seq_array1.shape[0],7,7,3))
+local2 = np.zeros(shape=(seq_array1.shape[0],7,7,3))
 
 for i,j,k in progressbar.progressbar(np.ndindex((seq_array1.shape[0],7,7))):
     # print(seq_array1[i,j])
@@ -91,23 +91,41 @@ for i,j,k in progressbar.progressbar(np.ndindex((seq_array1.shape[0],7,7))):
         local1[i,j,k] = float("NaN")
         local2[i,j,k] = float("NaN")
     else:
-        norm = max(len(seq_array1[i,j]),len(seq_array2[i,k]))
+        len_gene1, len_gene2 = len(seq_array1[i,j]),len(seq_array2[i,k])
+        norm = max(len_gene1, len_gene2)/2 # factor of half SSW score close to unity for idential sequences
         global1[i,j,k] = ed.align(seq_array1[i,j], seq_array2[i,k], mode="NW", task="distance")["editDistance"] / norm
         global2[i,j,k] = ed.align(seq_array1[i,j], seq_array2[i,k][::-1], mode="NW", task="distance")["editDistance"] / norm
         query = StripedSmithWaterman(seq_array1[i,j])
-        local1[i,j,k] = query(seq_array2[i,k])["optimal_alignment_score"]/norm
-        local2[i,j,k] = query(seq_array2[i,k][::-1])["optimal_alignment_score"]/norm
+        # get the forward alignment
+        forward_alignment = query(seq_array2[i,k])
+        local1[i,j,k,0] = forward_alignment["optimal_alignment_score"]/norm # get the normalised Smith-Waterman alignment score
+        alignment_length = (forward_alignment["target_end_optimal"] - forward_alignment["target_begin"])
+        local1[i,j,k,1] = alignment_length/len_gene1 # coverage of gene1 computed by normalising alignment length
+        local1[i,j,k,2] = alignment_length/len_gene2 # coverage of gene2 computed by normalising alignment length
+        # repeat steps for alignment against the reversed sequences
+        reverse_alignment = query(seq_array2[i,k][::-1]) # alignment for the reversed sequence
+        local2[i,j,k,0] = reverse_alignment["optimal_alignment_score"]/norm # get the normalised Smith-Waterman alignment score
+        alignment_length = (reverse_alignment["target_end_optimal"] - reverse_alignment["target_begin"])
+        local2[i,j,k,1] = alignment_length/len_gene1 # coverage of gene1 computed by normalising alignment length
+        local2[i,j,k,2] = alignment_length/len_gene2 # coverage of gene2 computed by normalising alignment length
 
-global1 = np.array(global1).reshape(seq_array1.shape[0],-1)
-global2 = np.array(global2).reshape(seq_array1.shape[0],-1)
-local1 = np.array(local1).reshape(seq_array1.shape[0],-1)
-local2 = np.array(local2).reshape(seq_array1.shape[0],-1)
+np.save(args.out_dir + "/" + args.species + "_global1.npy", global1)
+np.save(args.out_dir + "/" + args.species + "_global2.npy", global2)
+np.save(args.out_dir + "/" + args.species + "_local1.npy", local1)
+np.save(args.out_dir + "/" + args.species + "_local2.npy", local2)
 
 
-np.savetxt(args.out_dir + "/" + args.species + "_global1.txt", global1, fmt="%s")
-np.savetxt(args.out_dir + "/" + args.species + "_global2.txt", global2, fmt="%s")
-np.savetxt(args.out_dir + "/" + args.species + "_local1.txt", local1, fmt="%s")
-np.savetxt(args.out_dir + "/" + args.species + "_local2.txt", local2, fmt="%s")
+
+# global1 = np.array(global1).reshape(seq_array1.shape[0],-1)
+# global2 = np.array(global2).reshape(seq_array1.shape[0],-1)
+# local1 = np.array(local1).reshape(seq_array1.shape[0],-1)
+# local2 = np.array(local2).reshape(seq_array1.shape[0],-1)
+
+
+# np.savetxt(args.out_dir + "/" + args.species + "_global1.txt", global1, fmt="%s")
+# np.savetxt(args.out_dir + "/" + args.species + "_global2.txt", global2, fmt="%s")
+# np.savetxt(args.out_dir + "/" + args.species + "_local1.txt", local1, fmt="%s")
+# np.savetxt(args.out_dir + "/" + args.species + "_local2.txt", local2, fmt="%s")
 
 """
 Extinct code from earlier work, but saved if needed

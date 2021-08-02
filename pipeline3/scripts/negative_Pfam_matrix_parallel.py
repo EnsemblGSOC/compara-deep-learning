@@ -63,15 +63,16 @@ array2 = np.concatenate((samples_df.non_homo_gene_stable_id.values[:,np.newaxis]
 
 keys = "qseqid qlen sseqid slen qstart qend sstart send".split(" ")
 
-keys = ['qseqid', 'qlen', 'sseqid', 'slen', 'qstart', 'qend', 'sstart', 'send']
+keys = ['qseqid', 'qlen', 'sseqid', 'slen', 'qstart', 'qend', 'sstart', 'send','evalue']
+keys = ['qseqid', 'sseqid', 'sstart', 'send']
 
-pfam = pd.read_csv(args.Pfam_dir + "/" + args.species + ".outs.tsv", delimiter="\t", names=keys)
+pfam = pd.read_csv(args.Pfam_dir + "/" + args.species + ".outs.tsv.gz", delimiter="\t", names=keys, compression="gzip", usecols=[0,2,6,7])
 
 pfam["qseqid"] = pfam["qseqid"].str.split(".").str[0]
 
 pfam_dfs = []
 for query_species in samples_df.non_homo_species.drop_duplicates():
-    temp_pfam = pd.read_csv( args.Pfam_dir + "/" + query_species + ".outs.tsv", delimiter="\t", names=keys)
+    temp_pfam = pd.read_csv( args.Pfam_dir + "/" + query_species + ".outs.tsv.gz", delimiter="\t", names=keys, compression="gzip", usecols=[0,2,6,7])
     temp_pfam["qseqid"] = temp_pfam["qseqid"].str.split(".").str[0]
     pfam_dfs.append(temp_pfam)
     # pfam_map.update(temp_pfam.groupby("qseqid")["sseqid"].apply(list).to_dict())

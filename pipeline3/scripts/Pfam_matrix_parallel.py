@@ -61,17 +61,18 @@ array2 = np.concatenate((samples_df.homology_gene_stable_id.values[:,np.newaxis]
 
 # array2 = pd.Series(array2[0])
 
-keys = "qseqid qlen sseqid slen qstart qend sstart send".split(" ")
+#keys = "qseqid qlen sseqid slen qstart qend sstart send".split(" ")
 
-keys = ['qseqid', 'qlen', 'sseqid', 'slen', 'qstart', 'qend', 'sstart', 'send']
+keys = ['qseqid', 'qlen', 'sseqid', 'slen', 'qstart', 'qend', 'sstart', 'send','evalue']
+keys = ['qseqid', 'sseqid', 'sstart', 'send']
 
-pfam = pd.read_csv(args.Pfam_dir + "/" + args.species + ".outs.tsv", delimiter="\t", names=keys)
+pfam = pd.read_csv(args.Pfam_dir + "/" + args.species + ".outs.tsv.gz", delimiter="\t", names=keys, compression="gzip", usecols=[0,2,6,7])
 
 pfam["qseqid"] = pfam["qseqid"].str.split(".").str[0]
 
 pfam_dfs = []
 for query_species in samples_df.homology_species.drop_duplicates():
-    temp_pfam = pd.read_csv( args.Pfam_dir + "/" + query_species + ".outs.tsv", delimiter="\t", names=keys)
+    temp_pfam = pd.read_csv( args.Pfam_dir + "/" + query_species + ".outs.tsv.gz", delimiter="\t", names=keys, compression="gzip", usecols=[0,2,6,7])
     temp_pfam["qseqid"] = temp_pfam["qseqid"].str.split(".").str[0]
     pfam_dfs.append(temp_pfam)
     # pfam_map.update(temp_pfam.groupby("qseqid")["sseqid"].apply(list).to_dict())
@@ -83,7 +84,7 @@ import pyranges as pr
 
 # pfam_array = np.zeros(shape=(array1.shape[0],7,7))
 
-pbar = tqdm(total=sum(array1.shape), position=0,leave=True)
+pbar = tqdm(total=np.product(array1.shape), position=0,leave=True)
 # for i,j,k in progressbar.progressbar(np.ndindex((array1.shape[0],7,7))):
 def overlap(tup):
     pbar.update()

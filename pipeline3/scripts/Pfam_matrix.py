@@ -44,12 +44,13 @@ gene_series = samples_df.gene_stable_id.map(sample_neighbours)
 gene_series[gene_series.isna()] = gene_series[gene_series.isna()].apply(lambda x: [[0,0,0],[0,0,0]]) # fill the null values
 array1 = np.concatenate(gene_series.apply( np.array ).values ).reshape((-1,6))
 array1 = np.concatenate((samples_df.gene_stable_id.values[:,np.newaxis], array1), axis=1) #.reshape(1,-1)
+array1 = array1[:,[1,2,3,0,4,5,6]] # put the main genes in the centre
 
 gene_series = samples_df.homology_gene_stable_id.map(sample_homology_neighbours)
 gene_series[gene_series.isna()] = gene_series[gene_series.isna()].apply(lambda x: [[0,0,0],[0,0,0]]) # fill the null values
 array2 = np.concatenate(gene_series.apply( np.array ).values ).reshape((-1,6))
 array2 = np.concatenate((samples_df.homology_gene_stable_id.values[:,np.newaxis], array2), axis=1) #.ravel()[np.newaxis,:]
-
+array2 = array2[:,[1,2,3,0,4,5,6]] # put the main genes in the centre
 # array1 = pd.Series(array1[0])
 
 # array2 = pd.Series(array2[0])

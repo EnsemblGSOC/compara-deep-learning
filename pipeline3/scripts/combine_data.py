@@ -63,14 +63,14 @@ for species in species_list:
 
     pos_data = []
     for path in pos_paths:
-        pos_data.append(np.loadtxt(path).reshape(-1,7,7)[:,:,:,np.newaxis])
+        pos_data.append(np.loadtxt(path, dtype="str").reshape(-1,7,7)[:,:,:,np.newaxis])
 
     pos_data = np.concatenate(pos_data, axis = -1)
 
     neg_paths = pos_paths.str.replace( species + "_", species + "_negative_" ).str.replace( "synteny_matrices", "negative_synteny_matrices" )
     neg_data = []
     for path in neg_paths:
-        neg_data.append(np.loadtxt(path).reshape(-1,7,7)[:,:,:,np.newaxis])
+        neg_data.append(np.loadtxt(path, dtype="str").reshape(-1,7,7)[:,:,:,np.newaxis])
     neg_data = np.concatenate(neg_data, axis = -1)
 
     print(pos_data.shape)

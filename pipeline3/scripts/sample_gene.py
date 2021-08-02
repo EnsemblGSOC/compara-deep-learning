@@ -46,7 +46,7 @@ homology = pd.read_csv(args.homo, compression="gzip", delimiter="\t")
 
 # read in the available species
 print(args.avail_species, os.getcwd())
-available_species = np.loadtxt("config/species_list.txt", dtype="str")
+available_species = np.loadtxt("config/valid_species.txt", dtype="str")
 
 # Select samples only from available lists
 intersection_species = list(set(sp_names) & set(homology.homology_species.drop_duplicates()) & set(available_species))
@@ -92,8 +92,10 @@ genes and the species we selected above
 homo_type_map = {
     i: j
     for i, j in zip(
-        homology.homology_type.drop_duplicates(),
-        ["ortholog", "ortholog", "ortholog", "paralog", "paralog", "gene_split"],
+        ['ortholog_many2many','ortholog_one2many','ortholog_one2one',
+        'within_species_paralog','other_paralog','gene_split'],
+
+        ["ortholog", "ortholog", "ortholog", "non", "paralog", "non"],
     )
 }
 homology["ortho_para"] = homology.homology_type.map(homo_type_map)
@@ -123,7 +125,7 @@ Now we get the neighbours of all the genes using the neighbours.json
 file generated earlier in the pipeline
 """
 
-# load the species map
+# load the neighbour genes map
 
 print("loading neighbourhood genes")
 with open(args.neighbours + "/" + args.species + "_all_neighbours.json") as f:
@@ -165,7 +167,7 @@ for species in pd.Series(query_species).append(pd.Series(args.species)):
     query_series = pd.Series(homology_neighbour_map.keys()) # get all genes from the query species
     negative_samples = pd.Series(list(neighbour_map.keys())).sample(int(num_ortho_sub_samples)) # sample them
     temp = negative_samples.to_frame("gene_stable_id")
-    temp["species"] = species
+    temp["species"] = args.species
     negs_main_species.append(temp)
     non_homo_samples_array = np.array(negative_samples) # initialise array for non-homologous pairs
     index = ~negative_samples.isin(temp_df.gene_stable_id) # indices of samples not in the homology db
