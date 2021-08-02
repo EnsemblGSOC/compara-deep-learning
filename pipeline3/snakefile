@@ -9,7 +9,7 @@ configfile:
     "config.json"
 
 # sp_path = "database_species_intersection.txt"
-sp_path = "species_list2.txt"
+sp_path = "valid_species.txt"
 species = np.loadtxt("config/" + sp_path, dtype="str")
 pep_paths = pd.Series(np.loadtxt("config/peptide_paths.txt", dtype="str"))
 homo_paths = pd.Series(np.loadtxt("config/homology_database_paths.txt", dtype="str"))
@@ -17,16 +17,21 @@ gtf_paths =  pd.Series(np.loadtxt("config/gtf_paths.txt", dtype="str"))
 
 rule all:
 	input:
-		# expand("/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Diamond/Alignments/{SPECIES}.outs.tsv", SPECIES = species[:5])
+		#expand( config["full_Diamond_alignments_path"] +"/{SPECIES}.outs.tsv.gz", SPECIES = species)
 		# expand("/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Longest_Gene_Fasta/{SPECIES}_longest_pep.fa",  SPECIES = species),
 		# expand(config["species_neighbour_outdir"] + "/{SPECIES}_all_neighbours.json", SPECIES = species )
 		#expand(config["out_dir"] + "/synteny_matrices/{SPECIES}_global2.txt", SPECIES = species[-5:] ),
-		# expand(config["out_dir"] + "/Pfam_matrices/{SPECIES}_Pfam.txt", SPECIES = species ),
-		# expand(config["out_dir"] + "/Pfam_matrices/{SPECIES}_negative_Pfam.txt", SPECIES = species ),
+		# expand(config["out_dir"] + "/Pfam_matrices/{SPECIES}_Pfam.txt", SPECIES = species),
+		# expand(config["Longest_pep_fasta_path"] + "/{SPECIES}_longest_pep_rev.fa", SPECIES=species),
+		# expand(config["out_dir"] + "/Pfam_matrices/{SPECIES}_negative_Pfam.txt", SPECIES = species),
+		# expand(config["full_Diamond_alignments_path"] + "/{SPECIES}_rev.outs.tsv.gz", SPECIES=species),
+		# expand(config["full_Diamond_alignments_path"] + "/{SPECIES}/{SPECIES}_rev_genes_list.txt", SPECIES=species)
 		# expand(config["samples_neighbour_outdir"] + "/{SPECIES}_negative_homology_sample_neighbour.json", SPECIES=species)
 		# expand(config["out_dir"] + "/synteny_matrices/{SPECIES}_global2.txt", SPECIES = species),
 		# expand(config["out_dir"] + "/negative_synteny_matrices/{SPECIES}_negative_global2.txt", SPECIES = species)
-		config["out_dir"] + "/Final_data/" + the_date + "_big_final.csv"
+		# expand(config["full_Diamond_alignments_path"] + "/{SPECIES}/{SPECIES}_genes_list.txt", SPECIES = species)
+		# config["out_dir"] + "/Final_data/" + the_date + "_big_final.csv"
+		expand(config["full_Diamond_alignments_path"] + "/{SPECIES}/{SPECIES}_genes_list.txt", SPECIES=species)
 
 # function to map the species to the path of the peptide fasta file
 def pep_path_map(wildcards):
@@ -46,12 +51,27 @@ rule select_longest:
 		"""
 		python  scripts/GeneReferencePetpideSelection.py --seq {input} --out_fasta {output}
 		"""
+rule reverse_fasta:
+	input:
+		config["Longest_pep_fasta_path"] + "/{SPECIES}_longest_pep.fa"
+	output:
+		config["Longest_pep_fasta_path"] + "/{SPECIES}_longest_pep_rev.fa"
+	threads:
+		1
+	resources:
+		memory = 1000,
+		reports_path = config["cluster_out_base_path"] + "/reverse_fasta/"
+	shell:
+		"""
+		python  scripts/reverse_fasta.py --input_fasta {input} --out_fasta {output}
+		"""
+
 
 rule Diamond_alignment:
 	input:
 		config["Longest_pep_fasta_path"] + "/{SPECIES}_longest_pep.fa"
 	output:
-		config["Diamond_alinments_path"] + "/{SPECIES}.outs.tsv"
+		config["full_Diamond_alignments_path"] + "/{SPECIES}.outs.tsv.gz"
 	params:
 		diamond_db_path = config["Diamond_Pfam_db_path"]
 	threads:
@@ -63,10 +83,32 @@ rule Diamond_alignment:
 	shell:
 		"""
 		diamond blastp -q {input} -d {params.diamond_db_path} -o {output} --very-sensitive \
-		--block-size {resources.blocks} --threads {threads} --verbose \
-		--outfmt 6 qseqid qlen sseqid slen qstart qend sstart send
+		--block-size {resources.blocks} --threads {threads} --verbose --max-target-seqs 250 --compress 1\
+		--outfmt 6 qseqid qlen sseqid slen qstart qend sstart send evalue
 
  		"""
+
+rule rev_Diamond_alignment:
+	input:
+		config["Longest_pep_fasta_path"] + "/{SPECIES}_longest_pep_rev.fa"
+	output:
+		config["full_Diamond_alignments_path"] + "/{SPECIES}_rev.outs.tsv.gz"
+	params:
+		diamond_db_path = config["Diamond_Pfam_db_path"]
+	threads:
+		16
+	resources:
+		reports_path = config["cluster_out_base_path"] + "/rev_Diamond_alignment/",
+		memory = 10000, # LFS memory in MBs
+		blocks = 2 # Diamond requires memory ~ blocks * 6Gb
+	shell:
+		"""
+		diamond blastp -q {input} -d {params.diamond_db_path} -o {output} --very-sensitive \
+		--block-size {resources.blocks} --threads {threads} --verbose --max-target-seqs 250 --compress 1\
+		--outfmt 6 qseqid qlen sseqid slen qstart qend sstart send evalue
+
+ 		"""
+
 
 def gtf_path_map(wildcards):
 	return gtf_paths[gtf_paths.str.contains(wildcards.SPECIES)].values[0]
@@ -95,6 +137,40 @@ rule species_neighbour:
 		python scripts/geneNeighbourFormater.py --gtf {input} \
 		--nb_neighbours {params.num_neighbours} --out_prefix {params.out_dir} \
 		--species {wildcards.SPECIES}
+		"""
+
+rule split_diamond_alignment:
+	input:
+		config["full_Diamond_alignments_path"] + "/{SPECIES}.outs.tsv.gz"
+	output:
+		config["full_Diamond_alignments_path"] + "/{SPECIES}/{SPECIES}_genes_list.txt"
+	threads:
+		10
+	resources:
+		reports_path = config["cluster_out_base_path"] + "/Diamond_Split/",
+		memory = 50000
+	params:
+		out_dir = config["full_Diamond_alignments_path"] + "/{SPECIES}/"
+	shell:
+		"""
+		bash scripts/split_diamond_alignment.sh {input} {output} {threads} {params.out_dir} {wildcards.SPECIES}
+		"""
+
+rule split_rev_diamond_alignment:
+	input:
+		config["full_Diamond_alignments_path"] + "/{SPECIES}_rev.outs.tsv.gz"
+	output:
+		config["full_Diamond_alignments_path"] + "/{SPECIES}/{SPECIES}_rev_genes_list.txt"
+	threads:
+		10
+	resources:
+		reports_path = config["cluster_out_base_path"] + "/rev_Diamond_Split/",
+		memory = 2000
+	params:
+		out_dir = config["full_Diamond_alignments_path"] + "/{SPECIES}/"
+	shell:
+		"""
+		bash scripts/split_rev_diamond_alignment.sh {input} {output} {threads} {params.out_dir} {wildcards.SPECIES}
 		"""
 
 def homo_path_map(wildcards):
@@ -146,9 +222,9 @@ rule synteny_matrix:
 		config["samples_neighbour_outdir"] + "/{SPECIES}_homology_sample_neighbour.json"
 	output:
 		config["out_dir"] + "/synteny_matrices/{SPECIES}_global1.txt",
-		config["out_dir"] + "/synteny_matrices/{SPECIES}_global2.txt"
-		# config["out_dir"] + "/synteny_matrices/{SPECIES}_local1.txt",
-		# config["out_dir"] + "/synteny_matrices/{SPECIES}_local2.txt"
+		config["out_dir"] + "/synteny_matrices/{SPECIES}_global2.txt",
+		config["out_dir"] + "/synteny_matrices/{SPECIES}_local1.txt",
+		config["out_dir"] + "/synteny_matrices/{SPECIES}_local2.txt"
 	params:
 		out_dir = config["out_dir"] + "/synteny_matrices",
 		samples_dir = config["samples_neighbour_outdir"],
@@ -173,9 +249,9 @@ rule negative_synteny_matrix:
 		config["samples_neighbour_outdir"] + "/{SPECIES}_negative_homology_sample_neighbour.json"
 	output:
 		config["out_dir"] + "/negative_synteny_matrices/{SPECIES}_negative_global1.txt",
-		config["out_dir"] + "/negative_synteny_matrices/{SPECIES}_negative_global2.txt"
-		# config["out_dir"] + "/negative_synteny_matrices/{SPECIES}_negative_local1.txt",
-		# config["out_dir"] + "/negative_synteny_matrices/{SPECIES}_negative_local2.txt"
+		config["out_dir"] + "/negative_synteny_matrices/{SPECIES}_negative_global2.txt",
+		config["out_dir"] + "/negative_synteny_matrices/{SPECIES}_negative_local1.txt",
+		config["out_dir"] + "/negative_synteny_matrices/{SPECIES}_negative_local2.txt"
 	params:
 		out_dir = config["out_dir"] + "/negative_synteny_matrices",
 		samples_dir = config["samples_neighbour_outdir"],
@@ -198,7 +274,7 @@ rule pfam_matrix:
 		config["samples_neighbour_outdir"] + "/{SPECIES}_sample_neighbour.json",
 		# The species homolog neighbours
 		config["samples_neighbour_outdir"] + "/{SPECIES}_homology_sample_neighbour.json",
-		config["Diamond_alinments_path"] + "/{SPECIES}.outs.tsv"
+		config["full_Diamond_alignments_path"] + "/{SPECIES}.outs.tsv.gz"
 	output:
 		config["out_dir"] + "/Pfam_matrices/{SPECIES}_Pfam.txt"		
 		# config["out_dir"] + "/synteny/" + species + "_local1.txt",
@@ -206,16 +282,16 @@ rule pfam_matrix:
 	params:
 		out_dir = config["out_dir"] + "/Pfam_matrices",
 		samples_dir = config["samples_neighbour_outdir"],
-		Pfam_dir = config["Diamond_alinments_path"]
+		Pfam_dir = config["full_Diamond_alignments_path"]
 	threads:
-		6
+		16
 	resources:
 		reports_path = config["cluster_out_base_path"] + "/Pfam_matrices/",
-		memory = 20000
+		memory = 2000
 	shell:
 		"""
 		mkdir -p {params.out_dir}
-		python scripts/Pfam_matrix_parallel.py --species {wildcards.SPECIES} --samples_dir {params.samples_dir} \
+		python scripts/Pfam_matrix_parallell_split.py --species {wildcards.SPECIES} --samples_dir {params.samples_dir} \
 		--Pfam_dir {params.Pfam_dir} --out_dir {params.out_dir} --threads {threads}
 		"""
 
@@ -226,24 +302,22 @@ rule negative_pfam_matrix:
 		config["samples_neighbour_outdir"] + "/{SPECIES}_negative_sample_neighbour.json",
 		# The species homolog neighbours
 		config["samples_neighbour_outdir"] + "/{SPECIES}_negative_homology_sample_neighbour.json",
-		config["Diamond_alinments_path"] + "/{SPECIES}.outs.tsv"
+		config["full_Diamond_alignments_path"] + "/{SPECIES}.outs.tsv.gz"
 	output:
 		config["out_dir"] + "/Pfam_matrices/{SPECIES}_negative_Pfam.txt"		
-		# config["out_dir"] + "/synteny/" + species + "_local1.txt",
-		# config["out_dir"] + "/synteny/" + species + "_local2.txt"
 	params:
 		out_dir = config["out_dir"] + "/Pfam_matrices",
 		samples_dir = config["samples_neighbour_outdir"],
-		Pfam_dir = config["Diamond_alinments_path"]
+		Pfam_dir = config["full_Diamond_alignments_path"]
 	threads:
-		6
+		16
 	resources:
 		reports_path = config["cluster_out_base_path"] + "/negative_Pfam_matrices/",
-		memory = 20000
+		memory = 2000
 	shell:
 		"""
 		mkdir -p {params.out_dir}
-		python scripts/negative_Pfam_matrix_parallel.py --species {wildcards.SPECIES} --samples_dir {params.samples_dir} \
+		python scripts/negative_Pfam_matrix_parallel_split.py --species {wildcards.SPECIES} --samples_dir {params.samples_dir} \
 		--Pfam_dir {params.Pfam_dir} --out_dir {params.out_dir} --threads {threads}
 		"""
 
