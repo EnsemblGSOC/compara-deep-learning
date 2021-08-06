@@ -14,7 +14,7 @@ species = np.loadtxt("config/" + sp_path, dtype="str")
 pep_paths = pd.Series(np.loadtxt("config/peptide_paths.txt", dtype="str"))
 homo_paths = pd.Series(np.loadtxt("config/homology_database_paths.txt", dtype="str"))
 gtf_paths =  pd.Series(np.loadtxt("config/gtf_paths.txt", dtype="str"))
-
+models = ["simple_model","ensemble_model","split_feature_model"]
 rule all:
 	input:
 		#expand( config["Diamond_alignments_path"] +"/{SPECIES}.outs.tsv.gz", SPECIES = species)
@@ -30,7 +30,8 @@ rule all:
 		# expand(config["out_dir"] + "/synteny_matrices/{SPECIES}_global2.npy", SPECIES = species),
 		# expand(config["out_dir"] + "/negative_synteny_matrices/{SPECIES}_negative_global2.npy", SPECIES = species)
 		# expand(config["Diamond_alignments_path"] + "/{SPECIES}/{SPECIES}_genes_list.txt", SPECIES = species)
-		config["out_dir"] + "/Final_data/" + the_date + "_big_final.csv"
+		config["Final_data"] + "/" + the_date + "_big_final.csv",
+		expand(config["Model_outputs"] + "/{MODEL}/keras_metadata.pb", MODEL = models)
 		# expand(config["Diamond_alignments_path"] + "/{SPECIES}/{SPECIES}_genes_list.txt", SPECIES=species)
 
 # function to map the species to the path of the peptide fasta file
@@ -332,29 +333,50 @@ rule format_data:
 		expand(config["out_dir"] + "/synteny_matrices/{SPECIES}_global1.npy", SPECIES=species),
 		expand(config["out_dir"] + "/synteny_matrices/{SPECIES}_global2.npy", SPECIES=species)
 	output:
-		config["out_dir"] + "/Final_data/" + the_date + "_big_final.npy",
-		config["out_dir"] + "/Final_data/" + the_date + "_big_final.csv"
+		config["Final_data"] + "/" + the_date + "_big_final.npy",
+		config["Final_data"] + "/" + the_date + "_big_final.csv"
 	params:
 		synt = config["out_dir"] + "/synteny_matrices",
 		neg_synt = config["out_dir"] + "/negative_synteny_matrices",
 		out_dir = config["out_dir"],
 		samples_dir = config["samples_neighbour_outdir"],
 		Pfam_dir = config["out_dir"] + "/Pfam_matrices",
-		date = the_date
+		date = the_date,
+		Final_data = config["Final_data"]
 	threads:
 		2
 	resources:
 		reports_path = config["cluster_out_base_path"] + "/combine_data/",
-		memory = 20000
+		memory = 50000
 	shell:
 		"""
 		mkdir -p {params.out_dir}
 		python scripts/combine_data.py --samples_dir {params.samples_dir} --Pfam_dir {params.Pfam_dir} \
-		--synt {params.synt} --neg_synt {params.neg_synt} --out_dir {params.out_dir} --date {params.date}
+		--synt {params.synt} --neg_synt {params.neg_synt} --out_dir {params.out_dir} --date {params.date} --Final_data {params.Final_data}
 		"""
 
+rule train_model: 
+	input:
+		config["Final_data"] + "/" + the_date + "_big_final.npy",
+		config["Final_data"] + "/" + the_date + "_big_final.csv"
+	output:
+		config["Model_outputs"] + "/{MODEL}/{MODEL}_accuracy_curves.png",
+		config["Model_outputs"] + "/{MODEL}/{MODEL}_loss_curves.png",
+		config["Model_outputs"] + "/{MODEL}/keras_metadata.pb"
+	params:
+		out_dir = config["Model_outputs"]
+	threads:
+			4
+	resources:
+		reports_path = config["cluster_out_base_path"] + "/Train_models/",
+		memory = 50000
 
-
+	shell:
+		"""
+		mkdir -p Model_outputs
+		python scripts/Deep_Learning/trainer.py --npy {input[0]} --csv {input[1]} \
+		--model_name {wildcards.MODEL} --out_dir {params.out_dir}
+		"""
 
 # cds_links = pd.Series(np.loadtxt("download_links/seq_intersect_link.txt", dtype="str"))
 # # Get the expected list of seq output files

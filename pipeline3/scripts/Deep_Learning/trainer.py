@@ -44,6 +44,9 @@ dataframe = pd.read_csv(args.csv) # eg "Jul-16-2021_big_final.csv"
 
 data = np.load(args.npy) # eg "Jul-16-2021_big_final.npy"
 
+dataframe = dataframe[~(dataframe.ortho_para == "not")]
+data = data[dataframe.index]
+
 # handy function for plotting metrics
 def plot_history(history, metrics_list, savepath):
     """
@@ -53,6 +56,7 @@ def plot_history(history, metrics_list, savepath):
         plt.plot(history.history[metric], label = metric)
     plt.legend()
     plt.savefig(savepath)
+
 
 # Learning rate decay scheduler
 def scheduler(epoch, lr):
@@ -95,7 +99,7 @@ print(model.summary())
 precis = tf.keras.metrics.Precision()
 recall = tf.keras.metrics.Recall()
 AUC = tf.keras.metrics.AUC()
-
+categorical_loss = CategoricalCrossentropy()
 # compile the model
 model.compile(optimizer="adam", loss=categorical_loss, metrics=["accuracy"])
 # train the model
@@ -108,6 +112,6 @@ history = model.fit(train_X,
 # save the model
 model.save(args.out_dir + "/" + args.model_name)
 # save the loss curves
-plot_history(history, ["loss","val_loss"], args.out_dir + "/" + args.model_name + "_loss_curves.png")
+plot_history(history, ["loss","val_loss"], args.out_dir + "/" + args.model_name + "/" + args.model_name + "_loss_curves.png")
 # save the accuracy curves
-plot_history(history, ["accuracy","val_accuracy"], args.out_dir + "/" + args.model_name + "_accuracy_curves.png")
+plot_history(history, ["accuracy","val_accuracy"], args.out_dir + "/" + args.model_name + "/" + args.model_name + "_accuracy_curves.png")

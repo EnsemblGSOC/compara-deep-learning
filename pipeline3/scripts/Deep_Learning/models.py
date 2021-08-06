@@ -21,6 +21,8 @@ from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.regularizers import l2
 
+# the number of categories to classify in the data
+n = 2
 
 def simple_model():
     """
@@ -76,29 +78,32 @@ def split_feature_model():
         return model
 
     # combine the intermediary model with the custom numbers of filters for each feature
-    inputs1a = Input(shape = (7,7,1), name = "inputs1a")
-    inputs1b = Input(shape = (7,7,2), name = "inputs1b")
-    inputs2 = Input(shape = (7,7,2), name = "inputs2")
-    inputs3a = Input(shape = (7,7,1), name = "inputs3a")
-    inputs3b = Input(shape = (7,7,2), name = "inputs3b")
-    inputs4a = Input(shape = (7,7,1), name = "inputs4a")
-    inputs4b = Input(shape = (7,7,2), name = "inputs4b")
-    h1a = Simple_model_filters(1)(inputs1a)
-    h1b = Simple_model_filters(2)(inputs1b)
-    h2 = Simple_model_filters(2)(inputs2)
-    h3a = Simple_model_filters(1)(inputs3a)
-    h3b = Simple_model_filters(2)(inputs3b)
-    h4a = Simple_model_filters(1)(inputs4a)
-    h4b = Simple_model_filters(2)(inputs4b)
+    inputs = Input(shape = (7,7,11), name = "inputs1")
+    # inputs1a = Input(shape =  (7,7,1), tf.gather(inputs, [0], axis = -1), name = "inputs1a")
+    # inputs1b = Input(shape =  (7,7,2),   tf.gather(inputs, [1,2], axis = -1), name = "inputs1b")
+    # inputs2 = Input(shape =  (7,7,2),   tf.gather(inputs, [3,4], axis = -1), name = "inputs2")
+    # inputs3a = Input(shape =  (7,7,1), tf.gather(inputs, [5], axis = -1), name = "inputs3a")
+    # inputs3b = Input(shape =  (7,7,2),   tf.gather(inputs, [6,7], axis = -1), name = "inputs3b")
+    # inputs4a = Input(shape =  (7,7,1),   tf.gather(inputs, [8], axis = -1), name = "inputs4a")
+    # inputs4b = Input(shape =  (7,7,2),    tf.gather(inputs, [9,10], axis = -1), name = "inputs4b")
+
+    h1a = Simple_model_filters(1)(tf.expand_dims(inputs[:,:,:,0], axis=-1))
+    h1b = Simple_model_filters(2)(inputs[:,:,:,1:3])
+    h2 = Simple_model_filters(2)(inputs[:,:,:,3:5])
+    h3a = Simple_model_filters(1)(tf.expand_dims(inputs[:,:,:,5], axis=-1))
+    h3b = Simple_model_filters(2)(inputs[:,:,:,6:8])
+    h4a = Simple_model_filters(1)(tf.expand_dims(inputs[:,:,:,8], axis =-1))
+    h4b = Simple_model_filters(2)(inputs[:,:,:,9:11])
     h =  Concatenate()([h1a,h1b,h2,h3a,h3b,h4a,h4b])
     h = Dense(40)(h)
     outputs= Dense(n, activation="softmax")(h)
-    model = Model(inputs=[inputs1a,inputs1b,inputs2,inputs3a,inputs3b,inputs4a,inputs4b],outputs=outputs )
+    model = Model(inputs=inputs,outputs=outputs )
     return model
 
     
-models = {"simple_model": simple_model(), "ensemble_model":ensemble_model,"split_feature_model":split_feature_model}
+models = {"simple_model": simple_model(), "ensemble_model":ensemble_model(),"split_feature_model":split_feature_model()}
 
+model = split_feature_model()
 
 def get_model(model_name):
     return models[model_name]
