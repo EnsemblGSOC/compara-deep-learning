@@ -2,8 +2,8 @@ import numpy as np
 import pandas as pd
 from datetime import date
 
-the_date = date.today().strftime("%b-%d-%Y")
-
+# the_date = date.today().strftime("%b-%d-%Y")
+the_date = "Aug-11-2021"
 # get the list of species names for the homology databases
 configfile:
     "config.json"
@@ -31,7 +31,8 @@ rule all:
 		# expand(config["out_dir"] + "/negative_synteny_matrices/{SPECIES}_negative_global2.npy", SPECIES = species)
 		# expand(config["Diamond_alignments_path"] + "/{SPECIES}/{SPECIES}_genes_list.txt", SPECIES = species)
 		config["Final_data"] + "/" + the_date + "_big_final.csv",
-		expand(config["Model_outputs"] + "/{MODEL}/keras_metadata.pb", MODEL = models)
+		expand(config["Model_outputs"] + "/{MODEL}/keras_metadata.pb", MODEL = models),
+		expand(config["out_dir"] + "/model_evaluations" + "/{MODEL}_comparison_matrix.png", MODEL=models)
 		# expand(config["Diamond_alignments_path"] + "/{SPECIES}/{SPECIES}_genes_list.txt", SPECIES=species)
 
 # function to map the species to the path of the peptide fasta file
@@ -47,7 +48,8 @@ rule select_longest:
 		4
 	resources:
 		memory = 8000,
-		reports_path = config["cluster_out_base_path"] + "/select_longest/"
+		reports_path = config["cluster_out_base_path"] + "/select_longest/",
+		gpu = ""
 	shell:
 		"""
 		python  scripts/GeneReferencePetpideSelection.py --seq {input} --out_fasta {output}
@@ -61,7 +63,8 @@ rule reverse_fasta:
 		1
 	resources:
 		memory = 1000,
-		reports_path = config["cluster_out_base_path"] + "/reverse_fasta/"
+		reports_path = config["cluster_out_base_path"] + "/reverse_fasta/",
+		gpu = ""
 	shell:
 		"""
 		python  scripts/reverse_fasta.py --input_fasta {input} --out_fasta {output}
@@ -80,7 +83,8 @@ rule Diamond_alignment:
 	resources:
 		reports_path = config["cluster_out_base_path"] + "/Diamond_alignment/",
 		memory = 10000, # LFS memory in MBs
-		blocks = 2 # Diamond requires memory ~ blocks * 6Gb
+		blocks = 2, # Diamond requires memory ~ blocks * 6Gb
+		gpu = ""
 	shell:
 		"""
 		diamond blastp -q {input} -d {params.diamond_db_path} -o {output} --very-sensitive \
@@ -101,7 +105,8 @@ rule rev_Diamond_alignment:
 	resources:
 		reports_path = config["cluster_out_base_path"] + "/rev_Diamond_alignment/",
 		memory = 10000, # LFS memory in MBs
-		blocks = 2 # Diamond requires memory ~ blocks * 6Gb
+		blocks = 2,  # Diamond requires memory ~ blocks * 6Gb
+		gpu = ""
 	shell:
 		"""
 		diamond blastp -q {input} -d {params.diamond_db_path} -o {output} --very-sensitive \
@@ -131,7 +136,8 @@ rule species_neighbour:
 		2
 	resources:
 		reports_path = config["cluster_out_base_path"] + "/species_neighbour/",
-		memory = 2000
+		memory = 2000,
+		gpu = ""
 	shell:
 		"""
 		mkdir -p {params.out_dir}
@@ -149,7 +155,8 @@ rule split_diamond_alignment:
 		10
 	resources:
 		reports_path = config["cluster_out_base_path"] + "/Diamond_Split/",
-		memory = 50000
+		memory = 50000,
+		gpu = ""
 	params:
 		out_dir = config["Diamond_alignments_path"] + "/{SPECIES}/"
 	shell:
@@ -166,7 +173,8 @@ rule split_rev_diamond_alignment:
 		10
 	resources:
 		reports_path = config["cluster_out_base_path"] + "/rev_Diamond_Split/",
-		memory = 2000
+		memory = 2000,
+		gpu = ""
 	params:
 		out_dir = config["Diamond_alignments_path"] + "/{SPECIES}/"
 	shell:
@@ -201,8 +209,9 @@ rule select_samples:
 		2
 	resources:
 		reports_path = config["cluster_out_base_path"] + "/select_samples/",
-		memory = 1000 # LFS memory in MBs
+		memory = 1000, # LFS memory in MBs
 		# Diamond requires memory ~ blocks * 6Gb
+		gpu = ""
 	shell:
 		"""
 		mkdir -p {params.out_dir}
@@ -234,7 +243,8 @@ rule synteny_matrix:
 		2
 	resources:
 		reports_path = config["cluster_out_base_path"] + "/synteny_matrices/",
-		memory = 500
+		memory = 500,
+		gpu = ""
 	shell:
 		"""
 		mkdir -p {params.out_dir}
@@ -261,7 +271,8 @@ rule negative_synteny_matrix:
 		2
 	resources:
 		reports_path = config["cluster_out_base_path"] + "/negative_synteny_matrices/",
-		memory = 500
+		memory = 500,
+		gpu = ""
 	shell:
 		"""
 		mkdir -p {params.out_dir}
@@ -288,7 +299,8 @@ rule pfam_matrix:
 		16
 	resources:
 		reports_path = config["cluster_out_base_path"] + "/Pfam_matrices/",
-		memory = 2000
+		memory = 2000,
+		gpu = ""
 	shell:
 		"""
 		mkdir -p {params.out_dir}
@@ -314,7 +326,8 @@ rule negative_pfam_matrix:
 		16
 	resources:
 		reports_path = config["cluster_out_base_path"] + "/negative_Pfam_matrices/",
-		memory = 2000
+		memory = 2000,
+		gpu = ""
 	shell:
 		"""
 		mkdir -p {params.out_dir}
@@ -322,7 +335,7 @@ rule negative_pfam_matrix:
 		--Pfam_dir {params.Pfam_dir} --out_dir {params.out_dir} --threads {threads}
 		"""
 
-the_date = date.today().strftime("%b-%d-%Y")
+# the_date = date.today().strftime("%b-%d-%Y")
 
 rule format_data:
 	input:
@@ -347,7 +360,8 @@ rule format_data:
 		2
 	resources:
 		reports_path = config["cluster_out_base_path"] + "/combine_data/",
-		memory = 50000
+		memory = 50000,
+		gpu = ""
 	shell:
 		"""
 		mkdir -p {params.out_dir}
@@ -369,13 +383,41 @@ rule train_model:
 			4
 	resources:
 		reports_path = config["cluster_out_base_path"] + "/Train_models/",
-		memory = 50000
+		memory = 10000,
+		# gpu = ""
+		gpu = '-q gpu -gpu "num=1:j_exclusive=no"'
 
 	shell:
 		"""
 		mkdir -p Model_outputs
-		python scripts/Deep_Learning/trainer.py --npy {input[0]} --csv {input[1]} \
+		python scripts/Deep_Learning/on_disc_trainer.py --npy {input[0]} --csv {input[1]} \
 		--model_name {wildcards.MODEL} --out_dir {params.out_dir}
+		"""
+
+rule evaluate_model:
+	input:
+		config["Final_data"] + "/" + the_date + "_big_final.npy",
+		config["Final_data"] + "/" + the_date + "_big_final.csv",
+		config["Model_outputs"] + "/{MODEL}/keras_metadata.pb" # check for the trained model
+	output:
+		config["out_dir"] + "/model_evaluations" + "/{MODEL}.png",
+		config["out_dir"] + "/model_evaluations" + "/{MODEL}_comparison_matrix.png"
+	params:
+		out_dir = config["out_dir"] + "/model_evaluations",
+		models_dir = config["Model_outputs"]
+	threads:
+			4
+	resources:
+		reports_path = config["cluster_out_base_path"] + "/Evaluate_models/",
+		memory = 5000,
+		gpu = ""
+		# gpu = '-q gpu -gpu "num=1:j_exclusive=no"'
+
+	shell:
+		"""
+		mkdir -p Model_outputs
+		python scripts/Deep_Learning/evaluator.py --npy {input[0]} --csv {input[1]} \
+		--model_name {wildcards.MODEL} --out_dir {params.out_dir} --models_dir {params.models_dir}
 		"""
 
 # cds_links = pd.Series(np.loadtxt("download_links/seq_intersect_link.txt", dtype="str"))
