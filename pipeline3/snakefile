@@ -2,8 +2,8 @@ import numpy as np
 import pandas as pd
 from datetime import date
 
-# the_date = date.today().strftime("%b-%d-%Y")
-the_date = "Aug-11-2021"
+the_date = date.today().strftime("%b-%d-%Y")
+# the_date = "Aug-11-2021"
 # get the list of species names for the homology databases
 configfile:
     "config.json"
@@ -26,13 +26,13 @@ rule all:
 		# expand(config["out_dir"] + "/Pfam_matrices/{SPECIES}_negative_Pfam.npy", SPECIES = species),
 		# expand(config["Diamond_alignments_path"] + "/{SPECIES}_rev.outs.tsv.gz", SPECIES=species),
 		# expand(config["Diamond_alignments_path"] + "/{SPECIES}/{SPECIES}_rev_genes_list.txt", SPECIES=species)
-		# expand(config["samples_neighbour_outdir"] + "/{SPECIES}_negative_homology_sample_neighbour.json", SPECIES=species)
+		expand(config["samples_neighbour_outdir"] + "/{SPECIES}_negative_homology_sample_neighbour.json", SPECIES=species)
 		# expand(config["out_dir"] + "/synteny_matrices/{SPECIES}_global2.npy", SPECIES = species),
 		# expand(config["out_dir"] + "/negative_synteny_matrices/{SPECIES}_negative_global2.npy", SPECIES = species)
 		# expand(config["Diamond_alignments_path"] + "/{SPECIES}/{SPECIES}_genes_list.txt", SPECIES = species)
-		config["Final_data"] + "/" + the_date + "_big_final.csv",
-		expand(config["Model_outputs"] + "/{MODEL}/keras_metadata.pb", MODEL = models),
-		expand(config["out_dir"] + "/model_evaluations" + "/{MODEL}_comparison_matrix.png", MODEL=models)
+		# config["Final_data"] + "/" + the_date + "_big_final.csv",
+		# expand(config["Model_outputs"] + "/{MODEL}/keras_metadata.pb", MODEL = models),
+		# expand(config["Model_outputs"] + "/model_evaluations" + "/{MODEL}_comparison_matrix.png", MODEL=models)
 		# expand(config["Diamond_alignments_path"] + "/{SPECIES}/{SPECIES}_genes_list.txt", SPECIES=species)
 
 # function to map the species to the path of the peptide fasta file
@@ -209,7 +209,7 @@ rule select_samples:
 		2
 	resources:
 		reports_path = config["cluster_out_base_path"] + "/select_samples/",
-		memory = 1000, # LFS memory in MBs
+		memory = 2000, # LFS memory in MBs
 		# Diamond requires memory ~ blocks * 6Gb
 		gpu = ""
 	shell:
@@ -335,7 +335,7 @@ rule negative_pfam_matrix:
 		--Pfam_dir {params.Pfam_dir} --out_dir {params.out_dir} --threads {threads}
 		"""
 
-# the_date = date.today().strftime("%b-%d-%Y")
+the_date = date.today().strftime("%b-%d-%Y")
 
 rule format_data:
 	input:
@@ -400,10 +400,10 @@ rule evaluate_model:
 		config["Final_data"] + "/" + the_date + "_big_final.csv",
 		config["Model_outputs"] + "/{MODEL}/keras_metadata.pb" # check for the trained model
 	output:
-		config["out_dir"] + "/model_evaluations" + "/{MODEL}.png",
-		config["out_dir"] + "/model_evaluations" + "/{MODEL}_comparison_matrix.png"
+		config["Model_outputs"] + "/model_evaluations" + "/{MODEL}.png",
+		config["Model_outputs"] + "/model_evaluations" + "/{MODEL}_comparison_matrix.png"
 	params:
-		out_dir = config["out_dir"] + "/model_evaluations",
+		out_dir = config["Model_outputs"] + "/model_evaluations",
 		models_dir = config["Model_outputs"]
 	threads:
 			4
@@ -415,7 +415,7 @@ rule evaluate_model:
 
 	shell:
 		"""
-		mkdir -p Model_outputs
+		mkdir -p {params.out_dir}
 		python scripts/Deep_Learning/evaluator.py --npy {input[0]} --csv {input[1]} \
 		--model_name {wildcards.MODEL} --out_dir {params.out_dir} --models_dir {params.models_dir}
 		"""
