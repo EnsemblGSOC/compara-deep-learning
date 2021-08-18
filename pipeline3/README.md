@@ -8,5 +8,9 @@ This project is a proof of principle that <em>deep learning</em> is capable of p
 
 ## The pipeline
 
-The pipeline ![alt text](https://github.com/AidanMar/compara-deep-learning/blob/master/pipeline3/small_dag.png)
+The project is implemented in [snakemake](https://snakemake.readthedocs.io/en/stable/index.html) and makes use of a conda environment stored in a [yml](https://github.com/AidanMar/compara-deep-learning/blob/master/pipeline3/compara.yml) in this repo to ensure as much reproducibility as possible. Moreover, once this conda environment is installed, all packages required for running the pipeline from end to end should already be installed.
+
+Snakemake allows us to specify a sequence of <em>rules</em> that can be used to transform input files into output files. By stringing many such rules together, snakemake allows us to elegantly formulate an entire data processing pipeline. Whilst the sequence of rules and transformations can be challenging to understand by reading a pipeline's script, the Directed Acyclic Graph of jobs that are used to go from raw input to output can be visualised to aid in in understanding the pipelines steps. An example of this can be seen here:
+
+![alt text](https://github.com/AidanMar/compara-deep-learning/blob/master/pipeline3/small_dag.png)
 
