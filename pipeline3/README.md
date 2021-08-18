@@ -14,3 +14,6 @@ Snakemake allows us to specify a sequence of <em>rules</em> that can be used to 
 
 ![alt text](https://github.com/AidanMar/compara-deep-learning/blob/master/pipeline3/small_dag.png)
 
+At first, this can be a little intimidating to view, however after a little thought it can be seen how much this visualisation aids in understanding the process by informing us which rules in the pipeline are dependent on which others before they run. An arrow from one rule to the next indicates the sequence in which a rule must be run. Moreover, once a rule has been established, it can further be generalised across multiple examples. For instance, above, the DAG is demonstrated for <em>neolamprologus brichardi</em>. But we can easily run the pipeline for multiple species, for example, the dag below generalises this to 3 species. We can in principle generalise the pipeline to as many species as we would like, provided that we have the necessary raw data and compute power to execute the pipeline.
+
+![alt text](https://github.com/AidanMar/compara-deep-learning/blob/master/pipeline3/medium_dag.png)
