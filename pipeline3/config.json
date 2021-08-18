@@ -7,12 +7,13 @@
     "Diamond_alignments_path":"/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Diamond/Alignments_top_250",
     "Diamond_Pfam_db_path":"/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Diamond/Pfam-A",
     "samples_neighbour_outdir":"/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Sample_Neighbours",
-    "samples_per_species":4000,
-    "num_homolog_species":20,
+    "samples_per_species":8000,
+    "num_homolog_species":40,
     "sp_names":"scripts/sp_names",
     "dist_matrix":"scripts/dist_matrix",
     "out_dir":"/hps/software/users/ensembl/repositories/compara/amarshall/compara-deep-learning/pipeline3/outs",
     "Final_data":"/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Final_data",
+    "hps_Final_data":"/hps/nobackup/flicek/ensembl/compara/amarshall/Final_data",
     "Model_outputs":"/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Model_outputs"
 
 }
