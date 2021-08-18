@@ -22,7 +22,11 @@ Further details of each of these matrices can be found at the bottom of this doc
 
 ## The network
 
-For each type of these feature matrices, the network has a CNN sub-module that learns a feature map for matrix. (Each feature get's its own CNN because the features are so diverse there's no reason to for them to apply the same filters to each of these layers. All features are later joined in MLP layers to merge all of them together). ![alt text](https://github.com/AidanMar/compara-deep-learning/blob/master/pipeline3/CNN_model.png)
+For each type of these feature matrices, the network has a separate CNN sub-module that learns a feature map for that matrix. (Each feature get's its own CNN because the features are so diverse there's no reason to for them to apply the same filters to each of these layers. All features are later joined in MLP layers to merge all of them together). Each CNN sub-module is visualised immediately below. The output of the sub-module is a fully connected MLP layer derived from the earlier CNN matrix values.  ![alt text](https://github.com/AidanMar/compara-deep-learning/blob/master/pipeline3/CNN_model.png)
+
+The output for each sub-module is then concatanated to and fed into an MLP layer is seen below, which in turn is concatenated with the value of the species distance between the species containing the two comparison genes. All of these are then either fed into a two or three way softmax layer which is used to assign probabilities for the gene pairs orthology category. The two way classification could simply be ortholog vs paralog, whilst a three way classification task would be ortholog vs paralog vs non-homologous. 
+![alt text](https://github.com/AidanMar/compara-deep-learning/blob/master/pipeline3/MLP_layers.png)
+
 
 ## Snakemake  implementation
 
