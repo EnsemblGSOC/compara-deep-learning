@@ -26,7 +26,7 @@ For each type of these feature matrices, the network has a separate CNN sub-modu
 
 ![alt text](https://github.com/AidanMar/compara-deep-learning/blob/master/pipeline3/CNN_model.png)
 
-The output for each sub-module is then concatanated to and fed into an MLP layer is seen below, which in turn is concatenated with the value of the species distance between the species containing the two comparison genes. All of these are then either fed into a two or three way softmax layer which is used to assign probabilities for the gene pairs orthology category. The two way classification could simply be ortholog vs paralog, whilst a three way classification task would be ortholog vs paralog vs non-homologous. 
+The output for each sub-module is then concatanated to and fed into an MLP layer is seen below, which in turn is concatenated with the value of the species distance between the species containing the two comparison genes. All of these are then either fed into a two or three way softmax layer which is used to assign probabilities for the gene pairs orthology category. The two way classification could simply be ortholog vs paralog, whilst a three way classification task would be ortholog vs paralog vs non-homologous. The nodes in the first layer of the network are coloured by their feature type, and by extension, the CNN sub-module that they originated from (with only 5 input nodes representing the 50 for cleaner visualisation).
 
 ![alt text](https://github.com/AidanMar/compara-deep-learning/blob/master/pipeline3/MLP_layers.png)
 
@@ -42,6 +42,51 @@ Snakemake allows us to specify a sequence of <em>rules</em> that can be used to 
 At first, this can be a little intimidating to view, however after a little thought it can be seen how much this visualisation aids in understanding the process by informing us which rules in the pipeline are dependent on which others before they run. An arrow from one rule to the next indicates the sequence in which a rule must be run. Moreover, once a rule has been established, it can further be generalised across multiple examples. For instance, above, the DAG is demonstrated for <em>neolamprologus brichardi</em>. But we can easily run the pipeline for multiple species, for example, the dag below generalises this to 3 species. We can in principle generalise the pipeline to as many species as we would like, provided that we have the necessary raw data and compute power to execute the pipeline. For the current demonstration, the pipleine was run with 56 species(the DAG can be seen [here](https://github.com/AidanMar/compara-deep-learning/blob/master/pipeline3/dag.png), though the image is very large).
 
 ![alt text](https://github.com/AidanMar/compara-deep-learning/blob/master/pipeline3/medium_dag.png)
+
+## The pipeline
+
+### Pre-requisites
+If you pull the repo, onto the EBI's LSF cluster system, called Codon, it should be able to run after some initial set-up. 
+
+To get going, make sure you have access to anaconda3 or miniconda so that you can work with conda environments. Firstly, clone this git repo to a suitable place on your cluster system. Once this has been complete, install the conda environment specified by the compara.yml in this repo. To create the environment, simply run:
+```
+ conda env create -f compara.yml
+```
+There are a lot of packages requires to run this pipeline from end to end, so do be patient with the installation process. For more info on dealing with conda envs and yml files see [here](https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-from-an-environment-yml-file).
+
+### Setting up Diamond
+
+If you have installed the conda environment, you have installed [Diamond](https://github.com/bbuchfink/diamond). This is the tool used for align genes to the PFAM-A database and is used in the pipeline to generate a database of alignments for each species. Before this can be done however, Diamond require some pre-setup to get going. Go to the ebi [ftp](http://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/) and download Pfam-A.fasta.gz. Then run 
+```
+diamond makedb --in /path1/Pfam-A.fasta.gz -d /path2/Pfam-A
+```
+where the inputs and outputs are modifiable to whereever is most appropriate on your system.
+
+### Config File
+
+Now that the package environment is set-up we need to specify the config file for the environment. This is the config.json file. By modifying this file, most of the flow of information through the pipeline should be readily controlled.
+
+reports_out_base_path: The path to the directory which will then contain all the subdirectories to which a stdout will write for each of the jobs that snakemake submits to the cluster. For instance, the rule split_diamond_alignment will will submit jobs to the cluster and then write its stdout to config["reports_out_base_path"] + "/Diamond_Split/"
+num_neighbours: Controls the number of upstream and downstream genes used in generated the feature matrices. This will results (2n + 1) x (2n + 1) feature matrices.
+species_neighbour_outdir: Path to directory of where to store neighbour genes as a dictionary for each species
+Longest_pep_fasta_path: Path to directory of where to store the longest peptide sequences of every gene
+Diamond_alignments_path: Path to directory of where to store the output of the Diamond Alignments
+Diamond_Pfam_db_path: Path to the Pfam-A database generated in the Diamond configuration step above. Ie, wherever you put /path2/Pfam-A earlier.
+samples_neighbour_outdir: Path to directory containing all the gene which are randomly sampled from the homology databases
+samples_per_species: The number of samples you wish to get from each species homology database
+num_homolog_species: The number of homology species to attempt to get from each database
+sp_names: Path to the file containing names of the species in the species distance matrix. This is included in this repo
+dist_matrix: Path to the file containing the species distance matrix. This is included in this repo
+out_dir: Path to directory where you would like most of the output information to go to.
+Final_data: Path to the directory where the final compiled and concatednated will be save. These files are ~1-10Gbs in size.
+Model_outputs: Path to the directory where the saved models will be saved as well as their evaluation statistics.
+
+
+
+
+Anything inside the pipeline can be validated by reading the snakefile, which details the input and output files for every rule in the pipeline. More than 
+
+### Step 1 
 
 
 ## So what's in each of the matrices?
