@@ -1,4 +1,4 @@
-# Gene Pair Orthology Prediction Using Deep Learning
+# GSoC (2021) - Gene Pair Orthology Prediction Using Deep Learning
 
 ## Project Goal
 
@@ -18,7 +18,7 @@ Every input matrix represents the genes in the neighborhood of the two genes bei
 4) The Pfam Jaccard matrix
 5) The Pfam coverage matrix
 
-Further details of each of these matrices can be found at the bottom of this document under the title: So what's in each of the matrices?
+Further details of each of these matrices can be found in the steps detailing the pipelines operation.
 
 ## The network
 
@@ -66,27 +66,89 @@ where the inputs and outputs are modifiable to whereever is most appropriate on 
 
 Now that the package environment is set-up we need to specify the config file for the environment. This is the config.json file. By modifying this file, most of the flow of information through the pipeline should be readily controlled.
 
-reports_out_base_path: The path to the directory which will then contain all the subdirectories to which a stdout will write for each of the jobs that snakemake submits to the cluster. For instance, the rule split_diamond_alignment will will submit jobs to the cluster and then write its stdout to config["reports_out_base_path"] + "/Diamond_Split/"
-num_neighbours: Controls the number of upstream and downstream genes used in generated the feature matrices. This will results (2n + 1) x (2n + 1) feature matrices.
-species_neighbour_outdir: Path to directory of where to store neighbour genes as a dictionary for each species
-Longest_pep_fasta_path: Path to directory of where to store the longest peptide sequences of every gene
-Diamond_alignments_path: Path to directory of where to store the output of the Diamond Alignments
-Diamond_Pfam_db_path: Path to the Pfam-A database generated in the Diamond configuration step above. Ie, wherever you put /path2/Pfam-A earlier.
-samples_neighbour_outdir: Path to directory containing all the gene which are randomly sampled from the homology databases
-samples_per_species: The number of samples you wish to get from each species homology database
-num_homolog_species: The number of homology species to attempt to get from each database
-sp_names: Path to the file containing names of the species in the species distance matrix. This is included in this repo
-dist_matrix: Path to the file containing the species distance matrix. This is included in this repo
-out_dir: Path to directory where you would like most of the output information to go to.
-Final_data: Path to the directory where the final compiled and concatednated will be save. These files are ~1-10Gbs in size.
-Model_outputs: Path to the directory where the saved models will be saved as well as their evaluation statistics.
+- species_file: contains the list of species that we wish to sample homologous pairs from
+- reports_out_base_path: The path to the directory which will then contain all the subdirectories to which a stdout will write for each of the jobs that snakemake submits to the cluster. For instance, the rule split_diamond_alignment will will submit jobs to the cluster and then write its stdout to config["reports_out_base_path"] + "/Diamond_Split/"
+- num_neighbours: Controls the number of upstream and downstream genes used in generated the feature matrices. This will results (2n + 1) x (2n + 1) feature matrices.
+- species_neighbour_outdir: Path to directory of where to store neighbour genes as a dictionary for each species
+- Longest_pep_fasta_path: Path to directory of where to store the longest peptide sequences of every gene
+- Diamond_alignments_path: Path to directory of where to store the output of the Diamond Alignments
+- Diamond_Pfam_db_path: Path to the Pfam-A database generated in the Diamond configuration step above. Ie, wherever you put /path2/Pfam-A earlier.
+-samples_neighbour_outdir: Path to directory containing all the gene which are randomly sampled from the homology databases
+- samples_per_species: The number of samples you wish to get from each species homology database
+- num_homolog_species: The number of homology species to attempt to get from each database
+- sp_names: Path to the file containing names of the species in the species distance matrix. This is included in this repo
+-dist_matrix: Path to the file containing the species distance matrix. This is included in this repo
+- out_dir: Path to directory where you would like most of the output information to go to.
+- Final_data: Path to the directory where the final compiled and concatednated will be save. These files are ~1-10Gbs in size.
+- Model_outputs: Path to the directory where the saved models will be saved as well as their evaluation statistics.
 
+### Config directory
 
+Within this repo there is a directory called config. This has a set of files, each one containing the file paths to files needed to run this pipeline. This was run natively on the EBI server, and therefore all files are readily available on the system. If you're running this on another system, then you'll need to download these files to wherever you run this pipeline.
 
+The three main file types are the <em>peptide</em> files which contain the protein sequences, the <em>CDS</em> files which hold the coordinates of the protein coding sequences of each genes, and the <em>homology database</em> files which contain the list of labelled homologous pairs for each species that the EBI has data from. In order to run this pipeline for a species, you need to have all three such files for your species of interest. If not, it cannot be run. By investigating the species which have all three files present, you can compile a list of species you wish to run the pipeline for. I did this, and placed a completed list into config/valid_species.txt. My selection procedure was relatively random and I just picked ~50 species that had all the relevant data. You can generate your own species set if you're interested in other species.
 
-Anything inside the pipeline can be validated by reading the snakefile, which details the input and output files for every rule in the pipeline. More than 
+### Running the Pipeline
 
-### Step 1 
+Everything in the pipeline is controlled by the snakefile. Each rule of the snakefile can be seen earlier in the repo. Here is described what each rule does, in their order in the DAG, and what script in the scripts/ folder is required for each rule. Whilst snakemake implements each of these rules in turn, it simply strings together a sequence of bash and python scripts which are modularised such that one can in principle take the script and run each step separately without snakemake if desired. Some modification to the input output format for each script would be required to enable this to happen.
+
+#### rule: select_longest
+
+Inspects each species fasta file, selects the longest version of each gene and writes it to a knew fasta file.
+
+script: GeneReferencePetpideSelection.py
+
+#### rule: Diamond_alignment
+
+Takes each of the fasta files output from the rule<em>select longest</em> and aligns each genes for that species to the Pfam-A database to identify all of the Pfam domains within each gene. The output is a tsv file containing each gene, and the pfam domain that it aligns to.
+
+script: uses diamond which is part of the compara.yml conda environment
+
+rule: split_diamond_alignment
+
+Each of the tsv files output from a diamond alignment can be very large, too large to hold in memory. Therefore, each tsv file is split into many separate tsv files, each containing the pfam alignments for each gene, as these can easily be loaded into memory one at a time.
+
+#### rule: species_neighbour
+
+Goes through every gene in a species genome using the species' gtf file, and finds its upstream and downstream neighbouring genes. These are then written to a dictionary. This is done serparately for each species.
+
+script: geneNeighbourFormater.py
+
+#### rule: select_samples
+
+Reads the homology tsv file of the species, and selects homologous gene pairs between that species the homology file belongs to and multiple other "query species". There are many possible ways to select candidate gene pairs from this tsv file. The current implementation reads in the valid_species.txt file, and only allows comparison between species in that list. The potential query species are then ranked in order of their species distance, as stated in the species distance matrix. N query species are then chosen at evenly spaced ranks, where n is controlled in the config.json by "num_homolog_species". The rule aims to sample roughly equal numbers of orthologs and paralogs for comparison. Non-homologous genes are also randomly sampled between this set of species to give a list of gene pairs and their orthology type labels of ["ortholog","paralog","not"]. This is not the only way to generate a candidate genes pairs dataset, but the random sampling should prevent forms of bias slipping into the dataset. The script mostly exploits pandas to do the heavy lifting. The output pair names, along with some other features about the pairs, are saved as csv files at the location specified by "samples_neighbour_outdir". Additionally, each sampled gene's neighbourhood is identified by querying the genes name against the dictionaries produced by the rule <em>species_neighbour</em>. These are saved in {SPECIES}_sample_neighbour.json as dictionaries. Similarly, this is done for the each gene's homolog {SPECIES}_homology_sample_neighbour.json. The "negative" examples are those that are not homologous pairs, but just randomly sampled, unrelated pairs of genes. These are saved at {SPECIES}_negative_sample_neighbour.json, and {SPECIES}_negative_homology_sample_neighbour.json respectively. 
+
+script: sample_gene.py
+
+#### rule: synteny_matrix & negative_synteny_matrix
+
+This rule produced the first set of feature matrices that will in turn be fed into the network. The index of each element in the matrix was described earlier in this README under the heading <em>The network's input</em>. We use the same notation here. These matrices saved with the following names as numpy's npy files:
+
+{SPECIES}_global1.npy
+{SPECIES}_global2.npy
+{SPECIES}_local1.npy
+{SPECIES}_local2.npy
+
+Gene comparisons of global1 are made by taking the normalised levenstein matrix distance between each gene i and gene j. Matrix global2 is identical, except the sequences of gene j is now reversed. 
+
+local1 in fact contains 3 matrices, stacked one on top of another like the RGB channels of an image. The first of these contains a normalised Smith-Waterman alignment score between the compared genes. The next matrix contains the normalised coverage of compared gene i against compared gene j. The final matrix contains the normalised coverage of gene j against gene i as the coverage opration is not symmetric. local2 is identical to local1 except that gene j is has its sequence reversed.
+
+The "negative" versions of these files are identical to those described above, except it is ran for those pairs of genes that were identified as being non-homologous/unrelated in the <em>select_samples</em> step.
+
+script: synteny_matrix.py & negative_synteny_matrix.py
+
+#### rule: pfam_matrix & negative_pfam_matrix
+
+This set of matrices utilises the Diamond alignments to the Pfam-A, and therefore requires both sample genes and the sequence of steps relating to diamond to have been run. This is reflected in the earlier DAG. 
+
+The output is saved as {SPECIES}_negative_Pfam.npy. This contains 3 matrices stacked like an RGB channel. These Pfam matrices are aimed to contain information regarding the kind of functional structural domains that are shared between two genes, which should enable orthologs and paralogs to be differentiated from one another. Earlier in the pipeline, we found the list of Pfam domains that each gene aligned, and the positions of those alignments, using Diamond. When comparing gene i and gene j at this step, take the set of Pfam-domains each gene aligns to, along with the coordinates of those alignments. We then compute the [Jaccard index](https://en.wikipedia.org/wiki/Jaccard_index) between these sets where in order for a Pfam gene to be in both sets, both genes must have aligned to it, and at an overlapping position. A Jaccard index of 1 indicates the genes share lot of functional domains, whilst a Jaccard index of 0 indicates no such shared domains are present, and this should be reflective of the different natures of the evolitionary relationships between different gene pairs. This information forms the first matrix in the pfam.npy.
+
+Whilst likely useful, the Jaccard index as a scalar value is being asked to represent a lot of degrees of variation in the range of functional domains shared between evolutionary relationships. The next two matrices in the pfam.npy aim to rectify this by taking the coverage overlap between the two pairs of sequences, which aims to capture variable information that might reflect, for instance, disparities in the lengths of the two genes. Again the coverage of A on B is not the same as B on A, so two matrices are requried to represent this in both directions.
+
+Once more, this is done separately for the "negative"/non-homologous pairs, by using a different script.
+
+script: Pfam_matrix_parallell_split.py & negative_Pfam_matrix_parallel_split.py
+
 
 
 ## So what's in each of the matrices?
