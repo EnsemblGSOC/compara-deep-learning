@@ -1,0 +1,9 @@
+ailuropoda_melanoleuca ENSAMEG0
+amphiprion_percula ENSAPEG0
+astatotilapia_calliptera ENSACLG0
+astyanax_mexicanus ENSAMXG0
+bos_taurus ENSBTAG0
+caenorhabditis_elegans WBGene00022277G0
+capra_hircus ENSCHIG0
+cavia_porcellus ENSCPOG0
+ciona_intestinalis ENSCING0
