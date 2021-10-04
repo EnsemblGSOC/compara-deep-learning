@@ -1,0 +1,5 @@
+{   
+    "homology_species_list":"config/homology_database_list.txt",
+    "homology_database_ftp_address":"ftp://ftp.ensembl.org/pub/current_tsv/ensembl-compara/homologies/"
+    
+}

@@ -1,0 +1,371 @@
+import numpy as np
+import pandas as pd
+
+configfile:
+    "config.json"
+
+
+# get the list of species names for the homology databases
+
+# This was an old approach
+species = np.loadtxt("download_links/database_species_intersection.txt", dtype="str")
+cds_links = pd.Series(np.loadtxt("download_links/seq_intersect_link.txt", dtype="str"))
+# Get the expected list of seq output files
+seq_files = list("downloads/cds/" + cds_links.str.split("/").str[-1])
+
+# read the list of gtf links
+pep_links = pd.Series(np.loadtxt("download_links/protein_intersect_seq.txt", dtype="str"))
+# Get the expected list of seq output files
+pep_files = list("downloads/pep/" + pep_links.str.split("/").str[-1])
+
+# read the list of gtf links
+gtf_links = pd.Series(np.loadtxt("download_links/gtf_intersect_link.txt", dtype="str"))
+# Get the expected list of seq output files
+gtf_files = list("downloads/gtfs/" + gtf_links.str.split("/").str[-1])
+
+
+rule all:
+	input:
+		# expand( "downloads/homology_databases/{SPECIES}.homologies.tsv.gz", SPECIES=species ),
+		# seq_files,
+		# gtf_files,
+		# pep_files,
+		# "genome_maps",
+		# "Diamond/astral40.dmnd",
+		# expand("processed/{SPECIES}_selected_indexes.npy", SPECIES = species),
+		# "processed/neighbor_genes.json",
+		# "protein_seq_positive.fa",
+		# "processed/neighbor_genes_negative.json",
+		# "Diamond/outputs/positive/outs.tsv",
+		# "Diamond/outputs/negative/outs.tsv",
+		# "Diamond/outputs/positive/pfam_db_positive.h5",
+		# "Diamond/outputs/negative/pfam_db_negative.h5",
+		# "processed/pfam_matrices/negative_samples_50K_pfam_matrices.npy",
+		"dataset"
+		# "Diamond/outputs/negative/outs.tsv",
+		# "processed/pfam_matrices/negative_samples_50K_pfam_matrices.npy"
+		
+	
+
+
+# rule get_download_links:
+# 	"""
+# 	This rule runs the download links script. 
+# 	This will get the user all of the possible 
+# 	download links for the gtf, cds files and fasta files
+# 	"""
+# 	input:
+# 		"scripts/ftpg.py"
+# 	output:
+# 		"download_links/gtf_link.txt",
+# 		"download_links/seq_link.txt",
+# 		"download_links/protein_seq.txt"
+# 	script:
+# 		"scripts/ftpg.py"
+
+# # read the list of seq links
+# seq_links = pd.Series(np.loadtxt("download_links/seq_link.txt", dtype="str"))
+# # Get the expected list of seq output files
+# seq_files = list("downloads/cds/" + seq_links.str.split("/").str[-1])
+
+# rule get_database_intersection:
+# 	input:
+# 		homo_species = "config/homology_database_list.txt",
+# 		distance_species = "scripts/sp_names",
+# 		pep_links = "download_links/protein_seq.txt",
+# 		gtf_links = "download_links/gtf_link.txt",
+# 		sequence_links = "download_links/seq_link.txt"
+# 	output:
+# 		"config/database_species_intersection.txt",
+# 		"download_links/gtf_intersect_link.txt",
+# 		"download_links/protein_intersect_seq.txt",
+# 		"download_links/seq_intersect_link.txt"
+# 	run:
+# 		homo_species = np.loadtxt(input.homo_species, dtype="str")
+# 		dist_matrix_species = np.loadtxt(input.distance_species, dtype="str")
+# 		links = pd.Series(np.loadtxt(input.pep_links, dtype="str"))
+# 		pep_species = links.str.split("/").str[-1].str.split(".").str[0].str.lower()
+# 		final_species_list = pd.Series(list(set(pep_species) & set(homo_species) & set(dist_matrix_species))).sort_values()
+# 		final_species_list.to_csv(output[0], index=False, header=None)
+# 		paths = ['download_links/gtf_link.txt', 'download_links/protein_seq.txt', 'download_links/seq_link.txt']
+# 		for i,path in enumerate(paths):
+# 			links = pd.Series(np.loadtxt(path, dtype="str"))
+# 			mask = links.str.split("/").str[-1].str.split(".").str[0].str.lower().isin(final_species_list)
+# 			links[mask].to_csv(output[i+1], index=False, header=None)
+
+# read the list of gtf links
+
+
+rule download_cds:
+	input:
+		"download_links/seq_intersect_link.txt"
+	output:
+		files = seq_files,
+		out_dir = directory("downloads/cds"),
+		log_path = "logs/seq_download_log.txt"
+	shell:
+		"scripts/downloader.sh {input} {output.out_dir} {output.log_path}"
+
+
+
+rule download_gtf:
+	input:
+		"download_links/gtf_intersect_link.txt"
+	output:
+		files = gtf_files,
+		out_dir = directory("downloads/gtfs"),
+		log_path = "logs/gtf_download_log.txt"
+	shell:
+		"scripts/downloader.sh {input} {output.out_dir} {output.log_path}"
+
+
+
+rule download_pep:
+	input:
+		"download_links/protein_intersect_seq.txt"
+	output:
+		files = pep_files,
+		out_dir = directory("downloads/pep"),
+		log_path = "logs/pep_download_log.txt"
+	shell:
+		"scripts/downloader.sh {input} {output.out_dir} {output.log_path}"
+
+
+rule download_homology_databases:
+	input:
+		config["homology_species_list"]
+	output:
+		"downloads/homology_databases/{SPECIES}.homologies.tsv.gz"
+	params:
+		address=config["homology_database_ftp_address"]
+	shell:
+		"""
+		# make the homology database directory
+		mkdir -p homology_databases
+		# This mysterious looking piece of code yanks the ftp path homology database for each species
+		ftp_address=$(lynx -dump -listonly {params.address}{wildcards.SPECIES} | grep "protein" | tr -s ' ' | rev | cut -d " " -f 1 | rev)
+		# Use that address to download file with appropriate name
+		wget $ftp_address -q -O {output}
+		
+		"""
+
+# # rule download_pfam:
+# # 	input:
+# # 		"download_links/pfam_links.txt"
+# # 	output:
+# # 		out_dir = directory("downloads/pfam"),
+# # 		out_file = "downloads/pfam/Pfam-A.seed.gz"
+# # 	params:
+# # 		log_path = "logs/pfam_download_log.txt",
+# # 		out_file_prefix = "downloads/pfam/Pfam-A.seed"
+# # 	shell:
+# # 		"""
+# # 		bash scripts/downloader.sh {input} {output.out_dir} {output.log_path}
+# # 		gunzip {params.out_file_prefix}
+# # 		"""
+
+# # rule hmmer_build_and_press:
+# # 	input:
+# # 		"downloads/pfam/Pfam-A.seed"
+# # 	output:
+# # 		"hmmer/Pfam-A.hmm.h3f",
+# # 		"hmmer/Pfam-A.hmm.h3i",
+# # 		"hmmer/Pfam-A.hmm.h3m",
+# # 		"hmmer/Pfam-A.hmm.h3p",
+# # 		hmm="hmmer/Pfam-A.hmm"		
+# # 	shell:
+# # 		"""
+# # 		hmmbuild {output.hmm} {input}
+# # 		hmmpress {output.hmm}
+# # 		"""
+
+rule Diamond_setup:
+	input:
+		"Diamond/Pfam-A_subsample.fasta.gz"
+	output:
+		"Diamond/Pfam-A_subsample.dmnd"
+	shell:
+		"""
+		mkdir -p Diamond
+		cd Diamond
+		# Download the scope database
+		wget https://scop.berkeley.edu/downloads/scopeseq-2.07/astral-scopedom-seqres-gd-sel-gs-bib-40-2.07.fa
+		# Set-up the binary DIAMOND database file
+		diamond makedb --in {input} -d Pfam-A_subsample
+		"""
+
+# # The species for which there are proteins, homology databases, and values in the distance matrix are different
+# # This causes drama downstream. To overcome this, I find the intersection of three species lists
+
+rule create_genome_map:
+	input:
+		files = gtf_files,
+		in_dir = directory("downloads/gtfs")
+	output:
+		"genome_maps"
+	shell:
+		"python scripts/create_genome_map/create_genome_maps.py {input.in_dir} {output}"
+
+rule select_homology_records:
+	input:
+		expand("downloads/homology_databases/{SPECIES}.homologies.tsv.gz", SPECIES = species),
+		"scripts/dist_matrix",
+		"download_links/database_species_intersection.txt"
+	output:
+		expand("processed/{SPECIES}_selected_indexes.npy", SPECIES = species),
+		directory("processed")		
+	params:
+		# The number of records to be selected from each file
+		num_records = 25
+	shell:
+		"""
+		python scripts/select_data.py {params.num_records}
+		"""
+
+
+rule find_neighbor_genes:
+	input:
+		expand("processed/{SPECIES}_selected_indexes.npy", SPECIES = species),
+		directory("processed"),
+		directory("downloads/homology_databases"),
+		"genome_maps"
+	output:
+		"processed/neighbor_genes.json"
+	script:
+		"scripts/neighbor_genes.py"
+		
+	
+rule prep_synteny:
+	input:
+		"processed/neighbor_genes.json",
+		protein_files = pep_files,
+		sequence_files = seq_files
+	output:
+		directory("processed/synteny_matrices"),
+		"protein_seq_positive.fa"
+	threads:
+		4
+	shell:
+		"""
+		python scripts/prepare_synteny_matrix.py {threads}
+		"""
+
+rule process_negatives:
+	input:
+		#"protein_seq_positive.fa",
+		"genome_maps",
+		neg_samples = "negative_samples_50K.txt.gz",
+		files = pep_files
+	output:
+		"processed/neighbor_genes_negative.json",
+		"pro_seq_negative.fa"
+	threads:
+		4
+	shell:
+		"""
+		# sometimes snakemake will execute this before other steps so we need to make the processed dir first, just in case
+		mkdir -p processed
+
+		python scripts/process_negative.py {input.neg_samples} {threads}
+		"""
+
+rule Diamond_positive:
+	input:
+		"Diamond/Pfam-A_subsample.dmnd",
+		positive = "protein_seq_positive.fa"
+	output:
+		outdir = directory("Diamond/outputs/positive"),
+		alignments = "Diamond/outputs/positive/outs.tsv"
+	threads:
+		4
+	shell:
+		"""
+		mkdir -p {output.outdir}
+		diamond blastp -q {input.positive} -d Diamond/Pfam-A_subsample -o {output.alignments} --very-sensitive \
+		--threads {threads} --verbose --outfmt 6 qseqid qlen sseqid slen qstart qend sstart send
+
+ 		"""
+
+rule Diamond_negative:
+	input:
+		"Diamond/outputs/positive/outs.tsv",
+		"Diamond/Pfam-A_subsample.dmnd",
+		negative = "pro_seq_negative.fa"
+	output:
+		outdir = directory("Diamond/outputs/negative"),
+		alignments = "Diamond/outputs/negative/outs.tsv"
+	threads:
+		4
+	shell:
+		"""
+		mkdir -p {output.outdir}
+		diamond blastp -q {input.negative} -d Diamond/Pfam-A_subsample -o {output.alignments} --very-sensitive \
+		--threads {threads} --verbose --outfmt 6 qseqid qlen sseqid slen qstart qend sstart send
+		"""
+
+
+
+
+# # rule hmmerscan_positive:
+# # 	input:
+# # 		positive = "protein_seq_positive.fa",
+# # 		hmm_file = "hmmer/Pfam-A.hmm"
+# # 	output:
+# # 		"hmmer/domtblout_files/protein_seq_positive.fa.domtblout"
+# # 	shell:
+# # 		"""
+# # 		hmmscan --domtblout {output} {input.hmm_file} {input.positive}
+# # 		"""
+
+# # rule hmmerscan_negative:
+# # 	input:
+# # 		negative = "pro_seq_negative.fa",
+# # 		hmm_file = "hmmer/Pfam-A.hmm"
+# # 	output:
+# # 		"hmmer/domtblout_files/pro_seq_negative.fa.domtblout"
+# # 	shell:
+# # 		"""
+# # 		hmmscan --domtblout {output} {input.hmm_file} {input.negative}
+# # 		"""
+
+
+rule parse_pfam_domains:
+	input:
+		positive = "Diamond/outputs/positive/outs.tsv",
+		negative = "Diamond/outputs/negative/outs.tsv"
+	output:
+		"Diamond/outputs/positive/pfam_db_positive.h5",
+		"Diamond/outputs/negative/pfam_db_negative.h5"
+
+	shell:
+		"""
+		python scripts/pfam_parsing/pfam_parser.py {input.positive} {input.negative}
+		"""
+	
+rule pfam_matrix:
+	input:
+		expand("downloads/homology_databases/{SPECIES}.homologies.tsv.gz", SPECIES = species),
+		"Diamond/outputs/positive/pfam_db_positive.h5",
+		"Diamond/outputs/negative/pfam_db_negative.h5",
+		directory("downloads/homology_databases"),
+		neg_examples="negative_samples_50K.txt.gz"				
+	output:
+		"processed/pfam_matrices/negative_samples_50K_pfam_matrices.npy",
+		expand("processed/pfam_matrices/{SPECIES}_pfam_matrices.npy", SPECIES = species)		
+	shell:
+		"""
+		python scripts/pfam_matrix_diamond.py {input.neg_examples}
+		"""
+
+rule finalise:
+	input:
+		"processed/pfam_matrices/negative_samples_50K_pfam_matrices.npy",
+		expand("processed/pfam_matrices/{SPECIES}_pfam_matrices.npy", SPECIES = species),
+		neg_examples="negative_samples_50K.txt.gz"
+	output:
+		"dataset"
+	shell:
+		"""
+		python scripts/finalize_dataset.py {input.neg_examples}
+		echo "Pre-processing COMPLETE!!!"
+		"""

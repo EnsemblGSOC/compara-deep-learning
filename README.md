@@ -63,7 +63,7 @@ To create the synteny matrices:<br/>
 Note:The script uses multiprocessing to prepare synteny matrices. Since each thread has it own copy of all the resources its better to run with higher number of threads on a high-RAM machine.
 
 **Process The Negative Dataset:**<br/>
-Negative samples are a non-homologous pair of genes. You can get the negative samples from [here](ftp://ftp.ebi.ac.uk/pub/databases/ensembl/mateus/gsoc_2019/).Download one of your choice :).<br/>
+Negative samples are a non-homologous pair of genes. You can get the negative samples from here [link](ftp://ftp.ebi.ac.uk/pub/databases/ensembl/mateus/gsoc_2019/).Download one of your choice :).<br/>
 Process the negative set by using:<br/>
 `python process_negative.py negative_database_file_name number_of_threads`<br\>
 

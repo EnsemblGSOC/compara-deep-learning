@@ -1,0 +1,20 @@
+{   "cluster_out_base_path":"/hps/software/users/ensembl/repositories/compara/amarshall/compara-deep-learning/pipeline3/reports",
+    "num_neighbours":3,
+    "species_neighbour_outdir":"/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Species_Neighbours",
+    "Longest_pep_fasta_path":"/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Longest_Gene_Fasta",
+    "alt_Diamond_alignments_path":"/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Diamond/Alignments",
+    "full_Diamond_alignments_path":"/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Diamond/Alignments_full_query",
+    "Diamond_alignments_path":"/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Diamond/Alignments_top_250",
+    "Diamond_Pfam_db_path":"/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Diamond/Pfam-A",
+    "samples_neighbour_outdir":"/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Sample_Neighbours",
+    "samples_per_species":8000,
+    "num_homolog_species":40,
+    "sp_names":"scripts/sp_names",
+    "dist_matrix":"scripts/dist_matrix",
+    "out_dir":"/hps/software/users/ensembl/repositories/compara/amarshall/compara-deep-learning/pipeline3/outs",
+    "Final_data":"/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Final_data",
+    "hps_Final_data":"/hps/nobackup/flicek/ensembl/compara/amarshall/Final_data",
+    "Model_outputs":"/nfs/production/flicek/ensembl/compara/amarshall/Data_Storage/Model_outputs"
+
+}
+
